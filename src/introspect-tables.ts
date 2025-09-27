@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Client } from "pg";
-import type { IntrospeQLConfigType } from "./introspeql-config";
+import type { ParsedIntrospeQLConfig } from "./introspeql-config";
 
 const tableDataSchema = z.object({
   id: z.number(),
@@ -12,7 +12,7 @@ export type TableData = z.infer<typeof tableDataSchema>;
 
 export async function introspectTables(
   client: Client,
-  config: IntrospeQLConfigType
+  config: ParsedIntrospeQLConfig
 ) {
   const schemaPlaceholders = config.schemas
     .map((_, i) => `$${i + 1}`)

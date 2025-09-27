@@ -1,28 +1,27 @@
 {
   "name": "introspeql",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.0",
+  "description": "Easy Postgres to TypeScript type generation.",
   "main": "./dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "exports": {
-    ".": "./dist/introspect-database.js"
-  },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "PostgreSQL",
+    "Postgres",
+    "TypeScript"
+  ],
+  "author": "Joseph Dvorak",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
     "@types/node": "^24.5.2",
-    "@types/rc": "^1.2.4",
     "tsx": "^4.20.6",
     "typescript": "^5.9.2"
   },
   "dependencies": {
     "@types/pg": "^8.15.5",
     "pg": "^8.16.3",
-    "rc": "^1.2.8",
     "zod": "^4.1.11"
   }
 }

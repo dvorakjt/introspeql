@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Client } from "pg";
-import type { IntrospeQLConfigType } from "./introspeql-config";
+import type { ParsedIntrospeQLConfig } from "./introspeql-config";
 
 const typeSchema = z.object({
   id: z.coerce.number(),
@@ -27,7 +27,7 @@ export type ProcedureData = z.infer<typeof procedureDataSchema>;
 
 export async function introspectProcedures(
   client: Client,
-  config: IntrospeQLConfigType
+  config: ParsedIntrospeQLConfig
 ) {
   const schemaPlaceholders = config.schemas
     .map((_, i) => `$${i + 1}`)

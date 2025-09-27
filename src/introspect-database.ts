@@ -3,11 +3,17 @@ import { Client } from "pg";
 import { introspectTables, type TableData } from "./introspect-tables";
 import { introspectColumns, type ColumnData } from "./introspect-columns";
 import { introspectProcedures, ProcedureData } from "./introspect-procedures";
+import {
+  introspectEnum,
+  type PartialEnumData,
+  type EnumData,
+} from "./introspect-enum";
 import { writeHeader } from "./write-header";
-import type { IntrospeQLConfigType } from "./introspeql-config";
-import type { EnumData } from "./write-enums";
+import { prepareDataForWriting } from "./prepare-data-for-writing";
+import { appendSchema } from "./append-schema";
+import type { ParsedIntrospeQLConfig } from "./introspeql-config";
 
-export async function introspectDatabase(config: IntrospeQLConfigType) {
+export async function introspectDatabase(config: ParsedIntrospeQLConfig) {
   const client =
     "dbConnectionString" in config
       ? new Client({
@@ -35,7 +41,7 @@ export async function introspectDatabase(config: IntrospeQLConfigType) {
   // Read column data and update enums object when enum types are found
   const columnDataObjectsByTableId: Record<number, ColumnData[]> = {};
 
-  const enums: Record<number, EnumData> = {};
+  const partialEnumDataObjects: PartialEnumData[] = [];
 
   for (const tableDataObj of tableDataObjects) {
     try {
@@ -46,11 +52,17 @@ export async function introspectDatabase(config: IntrospeQLConfigType) {
       columnDataObjectsByTableId[tableDataObj.id] = columnDataObjects;
 
       for (const columnDataObj of columnDataObjects) {
-        if (columnDataObj.is_enum) {
-          enums[columnDataObj.column_type_id] = {
+        if (
+          columnDataObj.is_enum &&
+          !partialEnumDataObjects.find(
+            (d) => d.id === columnDataObj.column_type_id
+          )
+        ) {
+          partialEnumDataObjects.push({
+            id: columnDataObj.column_type_id,
             schema: columnDataObj.column_type_schema,
             name: columnDataObj.column_type,
-          };
+          });
         }
       }
     } catch (e) {
@@ -69,23 +81,43 @@ export async function introspectDatabase(config: IntrospeQLConfigType) {
 
   for (const procedureDataObject of procedureDataObjects) {
     for (const argType of procedureDataObject.arg_types) {
-      if (argType.is_enum) {
-        enums[argType.id] = {
+      if (
+        argType.is_enum &&
+        !partialEnumDataObjects.find((d) => d.id === argType.id)
+      ) {
+        partialEnumDataObjects.push({
+          id: argType.id,
           schema: argType.schema,
           name: argType.name,
-        };
+        });
       }
     }
 
-    if (procedureDataObject.return_type.is_enum) {
-      enums[procedureDataObject.return_type.id] = {
+    if (
+      procedureDataObject.return_type.is_enum &&
+      !partialEnumDataObjects.find(
+        (d) => d.id === procedureDataObject.return_type.id
+      )
+    ) {
+      partialEnumDataObjects.push({
+        id: procedureDataObject.return_type.id,
         schema: procedureDataObject.return_type.schema,
         name: procedureDataObject.return_type.name,
-      };
+      });
     }
   }
 
   // introspect enums
+  const enumDataObjects: EnumData[] = [];
+
+  for (const partialEnumDataObj of partialEnumDataObjects) {
+    try {
+      const enumData = await introspectEnum(client, partialEnumDataObj);
+      enumDataObjects.push(enumData);
+    } catch (e) {
+      throw new Error("Failed to introspect enum.", { cause: e });
+    }
+  }
 
   await client.end();
 
@@ -96,8 +128,13 @@ export async function introspectDatabase(config: IntrospeQLConfigType) {
 
   writeHeader(outputPath, config);
 
-  // organize by schema, then, for each schema
-  // Write enums
-  // Write table definitions
-  // Write function definitions
+  const schemas = prepareDataForWriting(
+    enumDataObjects,
+    tableDataObjects,
+    columnDataObjectsByTableId,
+    procedureDataObjects,
+    config
+  );
+
+  schemas.forEach((schema) => appendSchema(outputPath, schema));
 }
