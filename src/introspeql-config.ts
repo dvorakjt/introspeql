@@ -38,7 +38,7 @@ const otherConfig = z.object({
     })
     .optional()
     .default(() => ["public"]),
-  head: z.string().optional(),
+  header: z.string().optional(),
   types: z
     .record(z.string(), z.string())
     .optional()
