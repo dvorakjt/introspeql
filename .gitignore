@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.introspeqlrc
+.env
+.DS_Store
