@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { Client } from "pg";
 import { introspectTables, type TableData } from "./introspect-tables";
 import { introspectColumns, type ColumnData } from "./introspect-columns";
@@ -18,7 +20,7 @@ import { introspeqlConfig, type IntrospeQLConfig } from "./introspeql-config";
  *
  * @param config
  */
-export async function introspectDB(config: IntrospeQLConfig) {
+export async function generateTypes(config: IntrospeQLConfig) {
   const parsedConfig = introspeqlConfig.parse(config);
 
   const client =
@@ -128,7 +130,13 @@ export async function introspectDB(config: IntrospeQLConfig) {
 
   await client.end();
 
-  writeHeader(parsedConfig.outFile, parsedConfig);
+  const outDir = path.dirname(config.outFile);
+
+  if (!fs.existsSync(outDir)) {
+    fs.mkdirSync(outDir, { recursive: true });
+  }
+
+  if (!fs) writeHeader(parsedConfig.outFile, parsedConfig);
 
   const schemas = prepareDataForWriting(
     enumDataObjects,

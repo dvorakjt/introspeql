@@ -1,2 +1,2 @@
-export { introspectDB } from "./introspect-db";
+export { generateTypes } from "./generate-types";
 export type { IntrospeQLConfig } from "./introspeql-config";
