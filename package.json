@@ -1,6 +1,6 @@
 {
   "name": "introspeql",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Easy Postgres to TypeScript type generation.",
   "exports": {
     ".": "./dist/index.js"

@@ -136,7 +136,7 @@ export async function generateTypes(config: IntrospeQLConfig) {
     fs.mkdirSync(outDir, { recursive: true });
   }
 
-  if (!fs) writeHeader(parsedConfig.outFile, parsedConfig);
+  writeHeader(parsedConfig.outFile, parsedConfig);
 
   const schemas = prepareDataForWriting(
     enumDataObjects,
