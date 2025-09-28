@@ -27,6 +27,17 @@ export interface Schema {
   }>;
 }
 
+/**
+ * Organizes data by schema, table, and procedure, and formats it in
+ * preparation for type generation.
+ *
+ * @param enumDataObjects
+ * @param tableDataObjects
+ * @param columnDataObjectsByTableId
+ * @param procedureDataObjects
+ * @param config
+ * @returns An array of {@link Schema} objects.
+ */
 export function prepareDataForWriting(
   enumDataObjects: EnumData[],
   tableDataObjects: TableData[],

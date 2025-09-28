@@ -1,6 +1,12 @@
 import fs from "node:fs";
 import type { Schema } from "./prepare-data-for-writing";
 
+/**
+ * Appends a namespace representing the given schema to the provided output file.
+ *
+ * @param outputPath
+ * @param schema
+ */
 export function appendSchema(outputPath: string, schema: Schema) {
   let schemaTypeDefinitions = `export namespace ${schema.formattedName} {\n`;
 

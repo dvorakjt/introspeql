@@ -1,4 +1,3 @@
-import path from "node:path";
 import { Client } from "pg";
 import { introspectTables, type TableData } from "./introspect-tables";
 import { introspectColumns, type ColumnData } from "./introspect-columns";
@@ -13,7 +12,13 @@ import { prepareDataForWriting } from "./prepare-data-for-writing";
 import { appendSchema } from "./append-schema";
 import { introspeqlConfig, type IntrospeQLConfig } from "./introspeql-config";
 
-export async function introspectDatabase(config: IntrospeQLConfig) {
+/**
+ * Reads table, function, and enum metadata from a database and writes
+ * corresponding TypeScript type definitions to the provided output path.
+ *
+ * @param config
+ */
+export async function introspectDB(config: IntrospeQLConfig) {
   const parsedConfig = introspeqlConfig.parse(config);
 
   const client =
@@ -109,7 +114,7 @@ export async function introspectDatabase(config: IntrospeQLConfig) {
     }
   }
 
-  // introspect enums
+  // Read enum metadata for all enums that were featured in tables or procedures
   const enumDataObjects: EnumData[] = [];
 
   for (const partialEnumDataObj of partialEnumDataObjects) {
@@ -123,12 +128,7 @@ export async function introspectDatabase(config: IntrospeQLConfig) {
 
   await client.end();
 
-  const outputPath =
-    "outFile" in parsedConfig
-      ? parsedConfig.outFile
-      : path.join(parsedConfig.outDir, "introspeql-types.ts");
-
-  writeHeader(outputPath, parsedConfig);
+  writeHeader(parsedConfig.outFile, parsedConfig);
 
   const schemas = prepareDataForWriting(
     enumDataObjects,
@@ -138,5 +138,5 @@ export async function introspectDatabase(config: IntrospeQLConfig) {
     parsedConfig
   );
 
-  schemas.forEach((schema) => appendSchema(outputPath, schema));
+  schemas.forEach((schema) => appendSchema(parsedConfig.outFile, schema));
 }

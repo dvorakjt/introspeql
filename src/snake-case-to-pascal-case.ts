@@ -1,3 +1,10 @@
+/**
+ * Converts snake_case to PascalCase, preserving one leading underscore, if
+ * present.
+ *
+ * @param str - A snake_case string.
+ * @returns A PascalCase string.
+ */
 export function snakeCaseToPascalCase(str: string) {
   let formatted = str
     .split("_")

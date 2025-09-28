@@ -3,17 +3,28 @@ import type { Client } from "pg";
 import type { ParsedIntrospeQLConfig } from "./introspeql-config";
 
 const tableDataSchema = z.object({
+  /** The OID of the table. */
   id: z.number(),
+  /** The name of the schema containing the table. */
   schema: z.string(),
+  /** The name of the table. */
   name: z.string(),
 });
 
 export type TableData = z.infer<typeof tableDataSchema>;
 
+/**
+ * Returns information about tables in the provided schema(s), including their
+ * ids, names, and schema names.
+ *
+ * @param client
+ * @param config
+ * @returns A {@link Promise}<{@link TableData}[]>
+ */
 export async function introspectTables(
   client: Client,
   config: ParsedIntrospeQLConfig
-) {
+): Promise<TableData[]> {
   const schemaPlaceholders = config.schemas
     .map((_, i) => `$${i + 1}`)
     .join(", ");

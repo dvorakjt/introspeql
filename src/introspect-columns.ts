@@ -13,7 +13,17 @@ const columnDataSchema = z.object({
 
 export type ColumnData = z.infer<typeof columnDataSchema>;
 
-export async function introspectColumns(client: Client, tableId: number) {
+/**
+ * Reads metadata for each column of a given table.
+ *
+ * @param client
+ * @param tableId
+ * @returns A {@link Promise}<{@link ColumnData}[]>
+ */
+export async function introspectColumns(
+  client: Client,
+  tableId: number
+): Promise<ColumnData[]> {
   const result = await client.query(
     `
 SELECT
