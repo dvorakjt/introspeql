@@ -1,8 +1,10 @@
 {
   "name": "introspeql",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Easy Postgres to TypeScript type generation.",
-  "main": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "types": "./dist/index.d.ts",
   "scripts": {
     "format": "npx prettier . --write",
@@ -20,7 +22,7 @@
   ],
   "author": "Joseph Dvorak",
   "license": "MIT",
-  "type": "commonjs",
+  "type": "module",
   "devDependencies": {
     "@types/node": "^24.5.2",
     "prettier": "^3.6.2",
