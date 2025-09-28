@@ -11,16 +11,18 @@ import {
 import { writeHeader } from "./write-header";
 import { prepareDataForWriting } from "./prepare-data-for-writing";
 import { appendSchema } from "./append-schema";
-import type { ParsedIntrospeQLConfig } from "./introspeql-config";
+import { introspeqlConfig, type IntrospeQLConfig } from "./introspeql-config";
 
-export async function introspectDatabase(config: ParsedIntrospeQLConfig) {
+export async function introspectDatabase(config: IntrospeQLConfig) {
+  const parsedConfig = introspeqlConfig.parse(config);
+
   const client =
-    "dbConnectionString" in config
+    "dbConnectionString" in parsedConfig
       ? new Client({
-          connectionString: config.dbConnectionString,
+          connectionString: parsedConfig.dbConnectionString,
         })
       : new Client({
-          ...config.dbConnectionParams,
+          ...parsedConfig.dbConnectionParams,
         });
 
   try {
@@ -33,7 +35,7 @@ export async function introspectDatabase(config: ParsedIntrospeQLConfig) {
   let tableDataObjects: TableData[];
 
   try {
-    tableDataObjects = await introspectTables(client, config);
+    tableDataObjects = await introspectTables(client, parsedConfig);
   } catch (e) {
     throw new Error("Failed to introspect tables.", { cause: e });
   }
@@ -74,7 +76,7 @@ export async function introspectDatabase(config: ParsedIntrospeQLConfig) {
   let procedureDataObjects: ProcedureData[];
 
   try {
-    procedureDataObjects = await introspectProcedures(client, config);
+    procedureDataObjects = await introspectProcedures(client, parsedConfig);
   } catch (e) {
     throw new Error("Failed to introspect procedures.", { cause: e });
   }
@@ -122,18 +124,18 @@ export async function introspectDatabase(config: ParsedIntrospeQLConfig) {
   await client.end();
 
   const outputPath =
-    "outFile" in config
-      ? config.outFile
-      : path.join(config.outDir, "introspeql-types.ts");
+    "outFile" in parsedConfig
+      ? parsedConfig.outFile
+      : path.join(parsedConfig.outDir, "introspeql-types.ts");
 
-  writeHeader(outputPath, config);
+  writeHeader(outputPath, parsedConfig);
 
   const schemas = prepareDataForWriting(
     enumDataObjects,
     tableDataObjects,
     columnDataObjectsByTableId,
     procedureDataObjects,
-    config
+    parsedConfig
   );
 
   schemas.forEach((schema) => appendSchema(outputPath, schema));
