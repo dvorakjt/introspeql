@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 const databaseConnectionConfig = z.union([
   /**
@@ -41,10 +41,10 @@ const otherConfig = z.object({
     .string()
     .array()
     .nonempty({
-      message: "Please provide at least one schema.",
+      message: 'Please provide at least one schema.',
     })
     .optional()
-    .default(() => ["public"]),
+    .default(() => ['public']),
   /**
    * An optional header that will be written to the generated type definition
    * file before the types. Useful when you want to define or import types
@@ -70,18 +70,18 @@ const otherConfig = z.object({
   types: z
     .record(z.string(), z.string())
     .optional()
-    .transform((t) => ({
-      "pg_catalog.bool": "boolean",
-      "pg_catalog.int2": "number",
-      "pg_catalog.int4": "number",
-      "pg_catalog.float4": "number",
-      "pg_catalog.float8": "number",
-      "pg_catalog.json": "object",
-      "pg_catalog.jsonb": "object",
-      "pg_catalog.date": "Date",
-      "pg_catalog.timestamp": "Date",
-      "pg_catalog.timestamptz": "Date",
-      "pg_catalog.void": "void",
+    .transform(t => ({
+      'pg_catalog.bool': 'boolean',
+      'pg_catalog.int2': 'number',
+      'pg_catalog.int4': 'number',
+      'pg_catalog.float4': 'number',
+      'pg_catalog.float8': 'number',
+      'pg_catalog.json': 'object',
+      'pg_catalog.jsonb': 'object',
+      'pg_catalog.date': 'Date',
+      'pg_catalog.timestamp': 'Date',
+      'pg_catalog.timestamptz': 'Date',
+      'pg_catalog.void': 'void',
       ...t,
     })),
   /**

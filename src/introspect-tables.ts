@@ -1,6 +1,6 @@
-import { z } from "zod";
-import type { Client } from "pg";
-import type { ParsedIntrospeQLConfig } from "./introspeql-config";
+import { z } from 'zod';
+import type { Client } from 'pg';
+import type { ParsedIntrospeQLConfig } from './introspeql-config';
 
 const tableDataSchema = z.object({
   /** The OID of the table. */
@@ -23,11 +23,11 @@ export type TableData = z.infer<typeof tableDataSchema>;
  */
 export async function introspectTables(
   client: Client,
-  config: ParsedIntrospeQLConfig
+  config: ParsedIntrospeQLConfig,
 ): Promise<TableData[]> {
   const schemaPlaceholders = config.schemas
     .map((_, i) => `$${i + 1}`)
-    .join(", ");
+    .join(', ');
 
   let query = `
 SELECT c.oid AS id, n.nspname AS schema, c.relname AS name 
@@ -48,10 +48,10 @@ WHERE c.relkind = 'r' AND n.nspname IN (${schemaPlaceholders})
       parameters.push(tableToIgnore.name);
     }
 
-    query += `AND NOT (${filters.join(" OR\n")})`;
+    query += `AND NOT (${filters.join(' OR\n')})`;
   }
 
-  query += ";";
+  query += ';';
 
   const result = await client.query(query, parameters);
   const tableData = tableDataSchema.array().parse(result.rows);

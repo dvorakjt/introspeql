@@ -1,5 +1,5 @@
-import { z } from "zod";
-import type { Client } from "pg";
+import { z } from 'zod';
+import type { Client } from 'pg';
 
 export type PartialEnumData = {
   /** The OID of the enum. */
@@ -23,7 +23,7 @@ export type EnumData = PartialEnumData & {
  */
 export async function introspectEnum(
   client: Client,
-  data: PartialEnumData
+  data: PartialEnumData,
 ): Promise<EnumData> {
   const query = `
 SELECT ARRAY(SELECT enumlabel FROM pg_enum WHERE enumtypid = $1)::text[] AS enum_values;

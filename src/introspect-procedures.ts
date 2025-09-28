@@ -1,6 +1,6 @@
-import { z } from "zod";
-import type { Client } from "pg";
-import type { ParsedIntrospeQLConfig } from "./introspeql-config";
+import { z } from 'zod';
+import type { Client } from 'pg';
+import type { ParsedIntrospeQLConfig } from './introspeql-config';
 
 const typeSchema = z.object({
   /** The OID of the type. */
@@ -37,7 +37,7 @@ const procedureDataSchema = z.object({
     .string()
     .array()
     .nullable()
-    .transform((v) => (v ? v : [])),
+    .transform(v => (v ? v : [])),
   /**
    * An array containing type information for each of the procedure's
    * arguments.
@@ -61,11 +61,11 @@ export type ProcedureData = z.infer<typeof procedureDataSchema>;
  */
 export async function introspectProcedures(
   client: Client,
-  config: ParsedIntrospeQLConfig
+  config: ParsedIntrospeQLConfig,
 ) {
   const schemaPlaceholders = config.schemas
     .map((_, i) => `$${i + 1}`)
-    .join(", ");
+    .join(', ');
 
   let query = `
 SELECT 
@@ -135,10 +135,10 @@ WHERE n.nspname IN (${schemaPlaceholders})
       parameters.push(procedureToIgnore.name);
     }
 
-    query += `AND NOT (${filters.join(" OR\n")})`;
+    query += `AND NOT (${filters.join(' OR\n')})`;
   }
 
-  query += ";";
+  query += ';';
 
   const result = await client.query(query, parameters);
   const procedureData = procedureDataSchema.array().parse(result.rows);

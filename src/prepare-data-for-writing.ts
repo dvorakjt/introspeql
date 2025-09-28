@@ -1,9 +1,9 @@
-import { snakeCaseToPascalCase } from "./snake-case-to-pascal-case";
-import type { EnumData } from "./introspect-enum";
-import type { TableData } from "./introspect-tables";
-import type { ColumnData } from "./introspect-columns";
-import type { ProcedureData } from "./introspect-procedures";
-import type { ParsedIntrospeQLConfig } from "./introspeql-config";
+import { snakeCaseToPascalCase } from './snake-case-to-pascal-case';
+import type { EnumData } from './introspect-enum';
+import type { TableData } from './introspect-tables';
+import type { ColumnData } from './introspect-columns';
+import type { ProcedureData } from './introspect-procedures';
+import type { ParsedIntrospeQLConfig } from './introspeql-config';
 
 export interface Schema {
   formattedName: string;
@@ -43,7 +43,7 @@ export function prepareDataForWriting(
   tableDataObjects: TableData[],
   columnDataObjectsByTableId: Record<number, ColumnData[]>,
   procedureDataObjects: ProcedureData[],
-  config: ParsedIntrospeQLConfig
+  config: ParsedIntrospeQLConfig,
 ): Schema[] {
   const schemas: Schema[] = [];
 
@@ -57,7 +57,7 @@ export function prepareDataForWriting(
 function prepareEnums(
   enumDataObjects: EnumData[],
   schemas: Schema[],
-  config: ParsedIntrospeQLConfig
+  config: ParsedIntrospeQLConfig,
 ) {
   for (const enumDataObj of enumDataObjects) {
     // If the enum is overridden by configuration options, skip it.
@@ -78,7 +78,7 @@ function prepareTables(
   tableDataObjects: TableData[],
   columnDataObjectsByTableId: Record<number, ColumnData[]>,
   schemas: Schema[],
-  config: ParsedIntrospeQLConfig
+  config: ParsedIntrospeQLConfig,
 ) {
   for (const tableDataObj of tableDataObjects) {
     const schema = findOrInsertSchema(schemas, tableDataObj.schema);
@@ -89,12 +89,12 @@ function prepareTables(
       columnNames: columnDataObjectsByTableId[tableDataObj.id].reduce(
         (acc, current) => {
           const formattedColumnName = snakeCaseToPascalCase(
-            current.column_name
+            current.column_name,
           );
           acc[formattedColumnName] = current.column_name;
           return acc;
         },
-        {} as Record<string, string>
+        {} as Record<string, string>,
       ),
       rowType: columnDataObjectsByTableId[tableDataObj.id].reduce(
         (acc, current) => {
@@ -103,34 +103,34 @@ function prepareTables(
           const typeMappingKey = `${current.column_type_schema}.${current.column_type}`;
 
           if (typeMappingKey in config.types) {
-            type = config.types[typeMappingKey];
+            type = config.types[typeMappingKey as keyof typeof config.types];
           } else if (current.is_enum) {
             const formattedEnumName = snakeCaseToPascalCase(
-              current.column_type
+              current.column_type,
             );
             type = `Enums.${formattedEnumName}`;
 
             if (current.column_type_schema !== schema.rawName) {
               const formattedEnumSchemaName = snakeCaseToPascalCase(
-                current.column_type_schema
+                current.column_type_schema,
               );
               type = `${formattedEnumSchemaName}.${type}`;
             }
           } else {
-            type = "string";
+            type = 'string';
           }
 
-          type += "[]".repeat(current.num_dimensions);
+          type += '[]'.repeat(current.num_dimensions);
 
           if (current.nullable) {
-            type += " | null";
+            type += ' | null';
           }
 
           acc[current.column_name] = type;
 
           return acc;
         },
-        {} as Record<string, string>
+        {} as Record<string, string>,
       ),
     };
 
@@ -141,30 +141,30 @@ function prepareTables(
 function prepareProcedures(
   procedureDataObjects: ProcedureData[],
   schemas: Schema[],
-  config: ParsedIntrospeQLConfig
+  config: ParsedIntrospeQLConfig,
 ) {
   for (const procDataObj of procedureDataObjects) {
     const schema = findOrInsertSchema(schemas, procDataObj.schema);
 
     const extantProcedureDeclarations = schema.procedures.filter(
-      (p) => p.rawName === procDataObj.name
+      p => p.rawName === procDataObj.name,
     ).length;
 
     const procData = {
       formattedName:
         snakeCaseToPascalCase(procDataObj.name) +
-        (extantProcedureDeclarations > 0
-          ? "_" + extantProcedureDeclarations
-          : ""),
+        (extantProcedureDeclarations > 0 ?
+          '_' + extantProcedureDeclarations
+        : ''),
       rawName: procDataObj.name,
       argNames: procDataObj.arg_names,
-      argTypes: procDataObj.arg_types.map((a) => {
+      argTypes: procDataObj.arg_types.map(a => {
         let type: string;
 
         const typeMappingKey = `${a.schema}.${a.name}`;
 
         if (typeMappingKey in config.types) {
-          type = config.types[typeMappingKey];
+          type = config.types[typeMappingKey as keyof typeof config.types];
         } else if (a.is_enum) {
           const formattedEnumName = snakeCaseToPascalCase(a.name);
           type = `Enums.${formattedEnumName}`;
@@ -174,11 +174,11 @@ function prepareProcedures(
             type = `${formattedEnumSchemaName}.${type}`;
           }
         } else {
-          type = "string";
+          type = 'string';
         }
 
         if (a.is_array) {
-          type += "[]";
+          type += '[]';
         }
 
         return type;
@@ -189,25 +189,25 @@ function prepareProcedures(
         const typeMappingKey = `${procDataObj.return_type.schema}.${procDataObj.return_type.name}`;
 
         if (typeMappingKey in config.types) {
-          type = config.types[typeMappingKey];
+          type = config.types[typeMappingKey as keyof typeof config.types];
         } else if (procDataObj.return_type.is_enum) {
           const formattedEnumName = snakeCaseToPascalCase(
-            procDataObj.return_type.name
+            procDataObj.return_type.name,
           );
           type = `Enums.${formattedEnumName}`;
 
           if (procDataObj.return_type.schema !== schema.rawName) {
             const formattedEnumSchemaName = snakeCaseToPascalCase(
-              procDataObj.return_type.schema
+              procDataObj.return_type.schema,
             );
             type = `${formattedEnumSchemaName}.${type}`;
           }
         } else {
-          type = "string";
+          type = 'string';
         }
 
         if (procDataObj.return_type.is_array) {
-          type += "[]";
+          type += '[]';
         }
 
         return type;
@@ -219,7 +219,7 @@ function prepareProcedures(
 }
 
 function findOrInsertSchema(schemas: Schema[], rawName: string) {
-  let schema = schemas.find((s) => s.rawName === rawName);
+  let schema = schemas.find(s => s.rawName === rawName);
   if (schema) return schema;
 
   schema = {

@@ -1,5 +1,5 @@
-import { z } from "zod";
-import type { Client } from "pg";
+import { z } from 'zod';
+import type { Client } from 'pg';
 
 const columnDataSchema = z.object({
   column_name: z.string(),
@@ -22,7 +22,7 @@ export type ColumnData = z.infer<typeof columnDataSchema>;
  */
 export async function introspectColumns(
   client: Client,
-  tableId: number
+  tableId: number,
 ): Promise<ColumnData[]> {
   const result = await client.query(
     `
@@ -57,7 +57,7 @@ INNER JOIN pg_catalog.pg_attribute AS a ON c.oid = a.attrelid
 INNER JOIN pg_catalog.pg_type AS t ON a.atttypid = t.oid
 WHERE c.oid = $1
 AND a.attnum >= 1;`,
-    [tableId]
+    [tableId],
   );
 
   const columnData = columnDataSchema.array().parse(result.rows);
