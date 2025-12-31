@@ -1,2 +1,3 @@
-export { generateTypes } from './generate-types';
-export type { IntrospeQLConfig } from './introspeql-config';
+export { introspeql } from './introspeql';
+export { Directives } from './shared';
+export type { IntrospeQLConfig } from './config';

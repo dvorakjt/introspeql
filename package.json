@@ -1,20 +1,19 @@
 {
   "name": "introspeql",
-  "version": "0.0.4",
-  "description": "Easy Postgres to TypeScript type generation.",
-  "exports": {
-    ".": "./dist/index.js"
-  },
-  "types": "./dist/index.d.ts",
-  "scripts": {
-    "format": "npx prettier . --write",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
-  },
+  "version": "1.0.0",
+  "description": "IntrospeQL reads information about the schemas, tables, columns, functions, and enums in your PostgreSQL database and produces a TypeScript file detailing type information for each database object.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist",
     "README.md"
   ],
+  "scripts": {
+    "build": "tsc",
+    "format": "npx prettier . --write",
+    "lint": "npx eslint --fix",
+    "test": "vitest --no-watch"
+  },
   "keywords": [
     "PostgreSQL",
     "Postgres",
@@ -22,16 +21,28 @@
   ],
   "author": "Joseph Dvorak",
   "license": "MIT",
-  "type": "module",
+  "type": "commonjs",
   "devDependencies": {
-    "@types/node": "^24.5.2",
+    "@eslint/js": "^9.39.2",
+    "@eslint/json": "^0.14.0",
+    "@eslint/markdown": "^7.5.1",
+    "@faker-js/faker": "^10.1.0",
+    "@types/node": "^24.7.0",
     "@types/pg": "^8.15.5",
-    "prettier": "^3.6.2",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.2"
+    "dotenv": "^17.2.3",
+    "eslint": "^9.39.2",
+    "globals": "^16.5.0",
+    "nanoid": "^5.1.6",
+    "pgmock": "^1.0.3",
+    "prettier": "^3.7.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.51.0",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@prettier/sync": "^0.6.1",
     "pg": "^8.16.3",
-    "zod": "^4.1.11"
+    "prettier-plugin-jsdoc": "^1.8.0",
+    "zod": "^4.1.12"
   }
 }
