@@ -1,3 +1,4 @@
+export * from './capitalize';
 export * from './directives';
 export * from './get-tokens';
 export * from './indent';
