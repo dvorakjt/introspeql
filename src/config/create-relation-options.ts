@@ -1,14 +1,31 @@
-import { z } from 'zod';
+import {
+  z,
+  ZodArray,
+  ZodDefault,
+  ZodLiteral,
+  ZodObject,
+  ZodOptional,
+  ZodUndefined,
+} from 'zod';
 import { entityData } from './entity-data';
 import { capitalize } from '../shared/capitalize';
 
+/**
+ * Creates a Zod object that can parse IntrospeQL configuration options for
+ * database objects described in the pg_class table, including tables, views,
+ * and materialized views.
+ */
 export function createRelationOptions<
   T extends 'table' | 'view' | 'materializedView',
 >(relationName: T) {
-  const include =
-    `include${capitalize(relationName)}s` as `include${Capitalize<T>}s`;
-  const exclude =
-    `exclude${capitalize(relationName)}s` as `exclude${Capitalize<T>}s`;
+  const includeRelationsPropertyKey =
+    `include${capitalize(relationName)}s` as const;
+
+  const excludeRelationsPropertyKey =
+    `exclude${capitalize(relationName)}s` as const;
+
+  type IncludeRelationsPropertyKey = typeof includeRelationsPropertyKey;
+  type ExcludeRelationsPropertyKey = typeof excludeRelationsPropertyKey;
 
   return z
     .object({
@@ -34,24 +51,40 @@ export function createRelationOptions<
            * An array of relations for which type definitions should not be
            * generated. Only valid if `mode` is `'inclusive'`.
            */
-          [exclude]: entityData
+          [excludeRelationsPropertyKey]: entityData
             .array()
             .optional()
             .default(() => []),
-          [include]: z.undefined().optional(),
-        }),
+          [includeRelationsPropertyKey]: z.undefined().optional(),
+        }) as unknown as ZodObject<
+          { mode: ZodDefault<ZodOptional<ZodLiteral<'inclusive'>>> } & {
+            [K in ExcludeRelationsPropertyKey]: ZodDefault<
+              ZodOptional<ZodArray<typeof entityData>>
+            >;
+          } & {
+            [K in IncludeRelationsPropertyKey]: ZodOptional<ZodUndefined>;
+          }
+        >,
         z.object({
           mode: z.literal('exclusive'),
           /**
            * An array of relations for which type definitions should be
            * generated. Only valid if `mode` is `'exclusive'`.
            */
-          [include]: entityData
+          [includeRelationsPropertyKey]: entityData
             .array()
             .optional()
             .default(() => []),
-          [exclude]: z.undefined().optional(),
-        }),
+          [excludeRelationsPropertyKey]: z.undefined().optional(),
+        }) as unknown as ZodObject<
+          { mode: ZodLiteral<'exclusive'> } & {
+            [K in IncludeRelationsPropertyKey]: ZodDefault<
+              ZodOptional<ZodArray<typeof entityData>>
+            >;
+          } & {
+            [K in ExcludeRelationsPropertyKey]: ZodOptional<ZodUndefined>;
+          }
+        >,
       ]),
     );
 }
