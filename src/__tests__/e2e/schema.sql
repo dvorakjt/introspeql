@@ -296,3 +296,57 @@ $$;
 
 COMMENT ON FUNCTION reporting.list_order_statuses_for_user(BIGINT) IS
 '@introspeql-include';
+
+CREATE VIEW reporting.user_order_summary AS
+SELECT
+    u.user_id,
+    u.email,
+    COUNT(o.order_id)      AS order_count,
+    MIN(o.created_at)      AS first_order_at,
+    MAX(o.created_at)      AS last_order_at
+FROM auth.users u
+LEFT JOIN sales.orders o
+    ON o.user_id = u.user_id
+GROUP BY
+    u.user_id,
+    u.email;
+
+COMMENT ON VIEW reporting.user_order_summary IS
+'@introspeql-begin-tsdoc-comment
+Read-only per-user order summary for reporting and analytics.
+@introspeql-end-tsdoc-comment
+This will be excluded.';
+
+COMMENT ON COLUMN reporting.user_order_summary.user_id IS
+'User identifier.';
+
+COMMENT ON COLUMN reporting.user_order_summary.email IS
+'User email address.';
+
+COMMENT ON COLUMN reporting.user_order_summary.order_count IS
+'Total number of orders placed by the user.';
+
+COMMENT ON COLUMN reporting.user_order_summary.first_order_at IS
+'Timestamp of the user''s first order.';
+
+COMMENT ON COLUMN reporting.user_order_summary.last_order_at IS
+'Timestamp of the user''s most recent order.';
+
+CREATE MATERIALIZED VIEW reporting.order_status_counts AS
+SELECT
+    status,
+    COUNT(*) AS total_orders
+FROM sales.orders
+GROUP BY status;
+
+COMMENT ON MATERIALIZED VIEW reporting.order_status_counts IS
+'@introspeql-begin-tsdoc-comment
+Aggregated order counts by status.
+@introspeql-end-tsdoc-comment
+This will be excluded.';
+
+COMMENT ON COLUMN reporting.order_status_counts.status IS
+'Order status value.';
+
+COMMENT ON COLUMN reporting.order_status_counts.total_orders IS
+'Number of orders in this status.';

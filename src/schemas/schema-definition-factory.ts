@@ -30,6 +30,8 @@ export class SchemaDefinitionFactory {
     this.validateDBObjectNames(data.enums);
     this.validateDBObjectNames(data.tables);
     this.validateDBObjectNames(data.functions);
+    this.validateDBObjectNames(data.views);
+    this.validateDBObjectNames(data.materializedViews);
 
     const enumDefinitions = this.createSortedEnumDefinitions(data, config);
     const tableDefinitions = this.createSortedRelationDefinitions(

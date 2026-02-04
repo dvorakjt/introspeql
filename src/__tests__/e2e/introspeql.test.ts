@@ -46,6 +46,7 @@ describe(
         path.join(import.meta.dirname, 'schema.sql'),
         'utf-8',
       );
+
       await client.query(schema);
       await client.end();
     });

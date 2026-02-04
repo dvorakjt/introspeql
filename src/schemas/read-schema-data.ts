@@ -173,14 +173,18 @@ async function readAndRegisterTypeIfEnum(
 ) {
   if (
     maybeEnum.isEnum &&
-    !isEnumDefinedInConfig(maybeEnum.schema, maybeEnum.name, parsedConfig) &&
-    !(
-      maybeEnum.schema in schemas &&
-      schemas[maybeEnum.schema].enums.some(e => e.name === maybeEnum.name)
-    )
+    !isEnumDefinedInConfig(maybeEnum.schema, maybeEnum.name, parsedConfig)
   ) {
     const enumData = await readEnumData(client, maybeEnum.oid);
-    registerDBObject(enumData, 'enum', schemas);
+
+    if (
+      !(
+        maybeEnum.schema in schemas &&
+        schemas[maybeEnum.schema].enums.some(e => e.name === maybeEnum.name)
+      )
+    ) {
+      registerDBObject(enumData, 'enum', schemas);
+    }
   }
 }
 
