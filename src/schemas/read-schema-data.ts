@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { Client } from 'pg';
 import { enumDataSchema, readEnumData, type EnumData } from '../enums';
 import {
@@ -15,7 +16,7 @@ import {
 } from '../relations';
 import type { ParsedConfig } from '../config';
 
-export interface TableDataWithColumns extends RelationData {
+export interface RelationDataWithColumns extends RelationData {
   columns: ColumnData[];
 }
 
@@ -23,7 +24,9 @@ export interface SchemaData {
   name: string;
   enums: EnumData[];
   functions: FunctionData[];
-  tables: TableDataWithColumns[];
+  tables: RelationDataWithColumns[];
+  views: RelationDataWithColumns[];
+  materializedViews: RelationDataWithColumns[];
 }
 
 export async function readSchemaData(
@@ -31,10 +34,31 @@ export async function readSchemaData(
   parsedConfig: ParsedConfig,
 ) {
   const schemas: Record<string, SchemaData> = {};
+
+  await Promise.all([
+    readAndRegisterFunctionData(schemas, client, parsedConfig),
+    readAndRegisterRelationData('table', schemas, client, parsedConfig),
+    readAndRegisterRelationData('view', schemas, client, parsedConfig),
+    readAndRegisterRelationData(
+      'materializedView',
+      schemas,
+      client,
+      parsedConfig,
+    ),
+  ]);
+
+  return schemas;
+}
+
+async function readAndRegisterFunctionData(
+  schemas: Record<string, SchemaData>,
+  client: Client,
+  parsedConfig: ParsedConfig,
+) {
   const functions = await readFunctionData(client, parsedConfig);
 
   for (const f of functions) {
-    registerDBObject(f, schemas);
+    registerDBObject(f, 'function', schemas);
 
     for (const overload of f.overloads) {
       for (const paramType of overload.paramTypes) {
@@ -54,18 +78,25 @@ export async function readSchemaData(
       );
     }
   }
+}
 
-  const tables = await readRelationData('table', client, parsedConfig);
+async function readAndRegisterRelationData(
+  relationType: 'table' | 'view' | 'materializedView',
+  schemas: Record<string, SchemaData>,
+  client: Client,
+  parsedConfig: ParsedConfig,
+) {
+  const relations = await readRelationData(relationType, client, parsedConfig);
 
-  for (const t of tables) {
-    const columns = await readColumnData(client, t.oid);
+  for (const r of relations) {
+    const columns = await readColumnData(client, r.oid);
 
-    const tableDataWithColumns = {
-      ...t,
+    const relationDataWithColumns = {
+      ...r,
       columns,
     };
 
-    registerDBObject(tableDataWithColumns, schemas);
+    registerDBObject(relationDataWithColumns, relationType, schemas);
 
     for (const column of columns) {
       await readAndRegisterTypeIfEnum(
@@ -76,12 +107,15 @@ export async function readSchemaData(
       );
     }
   }
-
-  return schemas;
 }
 
-function registerDBObject(
-  dbObject: EnumData | FunctionData | TableDataWithColumns,
+function registerDBObject<
+  T extends EnumData | FunctionData | RelationDataWithColumns,
+>(
+  dbObject: T,
+  dbObjectType: T extends EnumData ? 'enum'
+  : T extends FunctionData ? 'function'
+  : 'table' | 'view' | 'materializedView',
   schemas: Record<string, SchemaData>,
 ) {
   if (!(dbObject.schema in schemas)) {
@@ -90,38 +124,40 @@ function registerDBObject(
       enums: [],
       functions: [],
       tables: [],
+      views: [],
+      materializedViews: [],
     };
   }
 
-  if (isEnumData(dbObject)) {
-    schemas[dbObject.schema].enums.push(dbObject);
-  } else if (isFunctionData(dbObject)) {
-    schemas[dbObject.schema].functions.push(dbObject);
-  } else if (isTableDataWithColumns(dbObject)) {
-    schemas[dbObject.schema].tables.push(dbObject);
-  }
-}
-
-function isEnumData(
-  dbObject: EnumData | FunctionData | TableDataWithColumns,
-): dbObject is EnumData {
-  return enumDataSchema.safeParse(dbObject).success;
-}
-
-function isFunctionData(
-  dbObject: EnumData | FunctionData | TableDataWithColumns,
-): dbObject is FunctionData {
-  return functionDataSchema.safeParse(dbObject).success;
-}
-
-function isTableDataWithColumns(
-  dbObject: EnumData | FunctionData | TableDataWithColumns,
-): dbObject is TableDataWithColumns {
-  return (
-    relationDataSchema.safeParse(dbObject).success &&
-    'columns' in dbObject &&
-    columnDataSchema.array().safeParse(dbObject.columns).success
+  const relationDataWithColumns = z.intersection(
+    relationDataSchema,
+    z.object({
+      columns: columnDataSchema.array(),
+    }),
   );
+
+  switch (dbObjectType) {
+    case 'enum':
+      const enumData = enumDataSchema.parse(dbObject);
+      schemas[dbObject.schema].enums.push(enumData);
+      break;
+    case 'function':
+      const functionData = functionDataSchema.parse(dbObject);
+      schemas[dbObject.schema].functions.push(functionData);
+      break;
+    case 'table':
+      const tableData = relationDataWithColumns.parse(dbObject);
+      schemas[dbObject.schema].tables.push(tableData);
+      break;
+    case 'view':
+      const viewData = relationDataWithColumns.parse(dbObject);
+      schemas[dbObject.schema].views.push(viewData);
+      break;
+    case 'materializedView':
+      const materializedViewData = relationDataWithColumns.parse(dbObject);
+      schemas[dbObject.schema].materializedViews.push(materializedViewData);
+      break;
+  }
 }
 
 async function readAndRegisterTypeIfEnum(
@@ -144,7 +180,7 @@ async function readAndRegisterTypeIfEnum(
     )
   ) {
     const enumData = await readEnumData(client, maybeEnum.oid);
-    registerDBObject(enumData, schemas);
+    registerDBObject(enumData, 'enum', schemas);
   }
 }
 

@@ -32,7 +32,7 @@ describe('ViewDefinition', () => {
     const viewDefinition = new ViewDefinition(PGViewName, columns);
 
     expect(viewDefinition.toString()).toBe(
-      `export namespace TopSellingProducts {
+      `export namespace BestSellingProducts {
   export const PGViewName = 'best_selling_products';
 
   export type ColumnNames = |
@@ -78,7 +78,7 @@ describe('ViewDefinition', () => {
       `/**
  * A view that contains information about the company\'s best-selling products.
  */
-export namespace TopSellingProducts {
+export namespace BestSellingProducts {
   export const PGViewName = 'best_selling_products';
 
   export type ColumnNames = |

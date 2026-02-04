@@ -35,7 +35,7 @@ describe('MaterializedViewDefinition', () => {
     );
 
     expect(materializedViewDefinition.toString()).toBe(
-      `export namespace TopSellingProducts {
+      `export namespace BestSellingProducts {
   export const PGMaterializedViewName = 'best_selling_products';
 
   export type ColumnNames = |
@@ -82,7 +82,7 @@ describe('MaterializedViewDefinition', () => {
       `/**
  * A materialized view that contains information about the company\'s best-selling products.
  */
-export namespace TopSellingProducts {
+export namespace BestSellingProducts {
   export const PGMaterializedViewName = 'best_selling_products';
 
   export type ColumnNames = |
