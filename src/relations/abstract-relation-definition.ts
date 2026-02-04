@@ -5,10 +5,11 @@ import {
 } from '../shared';
 import { ColumnDefinition } from './column-definition';
 
-export class RelationDefinition {
+export abstract class AbstractRelationDefinition {
+  protected abstract relationType: string;
+
   constructor(
     protected pgRelationName: string,
-    protected relationType: 'table' | 'view' | 'materializedView',
     protected columns: ColumnDefinition[],
     protected comment?: string,
   ) {}

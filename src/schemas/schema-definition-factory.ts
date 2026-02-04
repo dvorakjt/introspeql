@@ -3,7 +3,7 @@ import { EnumDefinition, type EnumData } from '../enums';
 import {
   ColumnDefinition,
   ColumnTypeDefinition,
-  RelationDefinition,
+  TableDefinition,
 } from '../relations';
 import {
   FunctionData,
@@ -185,12 +185,7 @@ export class SchemaDefinitionFactory {
         return new ColumnDefinition(columnData.name, typeDefinition, comment);
       });
 
-      return new RelationDefinition(
-        tableData.name,
-        'table',
-        columnDefinitions,
-        comment,
-      );
+      return new TableDefinition(tableData.name, columnDefinitions, comment);
     });
 
     return tableDefinitions;
