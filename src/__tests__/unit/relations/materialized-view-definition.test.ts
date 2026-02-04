@@ -7,7 +7,7 @@ import {
 
 describe('MaterializedViewDefinition', () => {
   it('creates a materialized view definition.', () => {
-    const PGMaterializedViewName = 'top_selling_products';
+    const PGMaterializedViewName = 'best_selling_products';
 
     const columns = [
       new ColumnDefinition('id', new ColumnTypeDefinition('number', 0, false)),
@@ -36,7 +36,7 @@ describe('MaterializedViewDefinition', () => {
 
     expect(materializedViewDefinition.toString()).toBe(
       `export namespace TopSellingProducts {
-  export const PGMaterializedViewName = 'top_selling_products';
+  export const PGMaterializedViewName = 'best_selling_products';
 
   export type ColumnNames = |
     'id' |
@@ -57,7 +57,7 @@ describe('MaterializedViewDefinition', () => {
   });
 
   it('applies TSDoc comments to the materialized view and columns.', () => {
-    const PGMaterializedViewName = 'top_selling_products';
+    const PGMaterializedViewName = 'best_selling_products';
     const materializedViewLevelComment =
       "/**\n * A materialized view that contains information about the company's best-selling products.\n */";
 
@@ -83,7 +83,7 @@ describe('MaterializedViewDefinition', () => {
  * A materialized view that contains information about the company\'s best-selling products.
  */
 export namespace TopSellingProducts {
-  export const PGMaterializedViewName = 'top_selling_products';
+  export const PGMaterializedViewName = 'best_selling_products';
 
   export type ColumnNames = |
     'id';

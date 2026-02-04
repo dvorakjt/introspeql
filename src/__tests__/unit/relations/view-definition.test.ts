@@ -7,7 +7,7 @@ import {
 
 describe('ViewDefinition', () => {
   it('creates a view definition.', () => {
-    const PGViewName = 'top_selling_products';
+    const PGViewName = 'best_selling_products';
 
     const columns = [
       new ColumnDefinition('id', new ColumnTypeDefinition('number', 0, false)),
@@ -33,7 +33,7 @@ describe('ViewDefinition', () => {
 
     expect(viewDefinition.toString()).toBe(
       `export namespace TopSellingProducts {
-  export const PGViewName = 'top_selling_products';
+  export const PGViewName = 'best_selling_products';
 
   export type ColumnNames = |
     'id' |
@@ -54,7 +54,7 @@ describe('ViewDefinition', () => {
   });
 
   it('applies TSDoc comments to the view and columns.', () => {
-    const PGViewName = 'top_selling_products';
+    const PGViewName = 'best_selling_products';
     const viewLevelComment =
       "/**\n * A view that contains information about the company's best-selling products.\n */";
     const columnLevelComment =
@@ -79,7 +79,7 @@ describe('ViewDefinition', () => {
  * A view that contains information about the company\'s best-selling products.
  */
 export namespace TopSellingProducts {
-  export const PGViewName = 'top_selling_products';
+  export const PGViewName = 'best_selling_products';
 
   export type ColumnNames = |
     'id';
