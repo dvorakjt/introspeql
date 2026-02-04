@@ -8,14 +8,14 @@ import {
 import {
   columnDataSchema,
   readColumnData,
-  readTableData,
-  tableDataSchema,
+  readRelationData,
+  relationDataSchema,
   type ColumnData,
-  type TableData,
-} from '../tables';
+  type RelationData,
+} from '../relations';
 import type { ParsedConfig } from '../config';
 
-export interface TableDataWithColumns extends TableData {
+export interface TableDataWithColumns extends RelationData {
   columns: ColumnData[];
 }
 
@@ -55,7 +55,7 @@ export async function readSchemaData(
     }
   }
 
-  const tables = await readTableData(client, parsedConfig);
+  const tables = await readRelationData('table', client, parsedConfig);
 
   for (const t of tables) {
     const columns = await readColumnData(client, t.oid);
@@ -118,7 +118,7 @@ function isTableDataWithColumns(
   dbObject: EnumData | FunctionData | TableDataWithColumns,
 ): dbObject is TableDataWithColumns {
   return (
-    tableDataSchema.safeParse(dbObject).success &&
+    relationDataSchema.safeParse(dbObject).success &&
     'columns' in dbObject &&
     columnDataSchema.array().safeParse(dbObject.columns).success
   );

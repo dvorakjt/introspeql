@@ -1,13 +1,13 @@
 import { EnumDefinition } from '../enums';
 import { FunctionDefinition } from '../functions';
-import { TableDefinition } from '../tables';
+import { RelationDefinition } from '../relations';
 import { convertPGIdentifierToTSIdentifier, indent } from '../shared';
 
 export class SchemaDefinition {
   constructor(
     protected pgSchemaName: string,
     protected enumDefinitions: EnumDefinition[],
-    protected tableDefinitions: TableDefinition[],
+    protected tableDefinitions: RelationDefinition[],
     protected functionDefinitions: FunctionDefinition[],
   ) {}
 

@@ -1,20 +1,27 @@
-import { indent, convertPGIdentifierToTSIdentifier } from '../shared';
+import {
+  indent,
+  convertPGIdentifierToTSIdentifier,
+  capitalize,
+} from '../shared';
 import { ColumnDefinition } from './column-definition';
 
-export class TableDefinition {
+export class RelationDefinition {
   constructor(
-    protected pgTableName: string,
+    protected pgRelationName: string,
+    protected relationType: 'table' | 'view' | 'materializedView',
     protected columns: ColumnDefinition[],
-    private comment?: string,
+    protected comment?: string,
   ) {}
 
   toString() {
-    const tsNamespaceName = convertPGIdentifierToTSIdentifier(this.pgTableName);
+    const tsNamespaceName = convertPGIdentifierToTSIdentifier(
+      this.pgRelationName,
+    );
     const columnNames = this.createColumnNamesUnion();
     const rowType = this.createRowTypeDefinition();
 
     let stringified = `export namespace ${tsNamespaceName} {
-  export const PGTableName = '${this.pgTableName}';
+  export const PG${capitalize(this.relationType)}Name = '${this.pgRelationName}';
 
 ${indent(columnNames, 2)}
 

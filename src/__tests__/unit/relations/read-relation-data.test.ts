@@ -1,7 +1,7 @@
 import { describe, beforeEach, afterEach, test, expect } from 'vitest';
 import { PostgresMock } from 'pgmock';
 import { Client } from 'pg';
-import { readTableData } from '../../../tables';
+import { readRelationData } from '../../../relations';
 import {
   introspeqlConfigSchema,
   type IntrospeQLConfig,
@@ -11,7 +11,7 @@ import { faker } from '@faker-js/faker';
 import { Directives } from '../../../shared';
 
 describe(
-  'readTableData',
+  'readRelationData',
   () => {
     let database: PostgresMock;
     let client: Client;
@@ -46,7 +46,7 @@ describe(
         await client.query(`CREATE TABLE ${tableName} ();`);
       }
 
-      const tableData = await readTableData(client, config);
+      const tableData = await readRelationData('table', client, config);
 
       for (const tableName of tableNames) {
         expect(tableData.some(td => td.name === tableName)).toBe(true);
@@ -60,7 +60,7 @@ describe(
       await client.query(`CREATE TABLE ${tableName}();`);
       await client.query(`COMMENT ON TABLE ${tableName} IS '${comment}';`);
 
-      const tableData = await readTableData(client, config);
+      const tableData = await readRelationData('table', client, config);
       expect(tableData[0].comment).toBe(comment);
     });
 
@@ -71,7 +71,7 @@ describe(
       await client.query(`CREATE TABLE ${tableName}();`);
       await client.query(`COMMENT ON TABLE ${tableName} IS '${comment}';`);
 
-      const tableData = await readTableData(client, config);
+      const tableData = await readRelationData('table', client, config);
       expect(tableData.length).toBe(0);
     });
 
@@ -93,7 +93,7 @@ describe(
 
       config = introspeqlConfigSchema.parse(baseConfig);
 
-      const tableData = await readTableData(client, config);
+      const tableData = await readRelationData('table', client, config);
       expect(tableData.length).toBe(1);
     });
   },

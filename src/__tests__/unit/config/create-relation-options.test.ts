@@ -1,6 +1,5 @@
-import { describe, it, test, expect } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import { createRelationOptions } from '../../../config/create-relation-options';
-import { ZodError } from 'zod';
 import { capitalize } from '../../../shared/capitalize';
 
 describe('createRelationOptions', () => {

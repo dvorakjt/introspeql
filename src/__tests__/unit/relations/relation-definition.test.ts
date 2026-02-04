@@ -1,9 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { TableDefinition, ColumnDefinition } from '../../../tables';
-import { ColumnTypeDefinition } from '../../../tables';
+import {
+  RelationDefinition,
+  ColumnDefinition,
+  ColumnTypeDefinition,
+} from '../../../relations';
 
-describe('TableDefinition', () => {
-  it('creates a table definition.', () => {
+describe('RelationDefinition', () => {
+  it('creates a relation definition.', () => {
     const PGTableName = 'users';
 
     const columns = [
@@ -26,9 +29,13 @@ describe('TableDefinition', () => {
       ),
     ];
 
-    const tableDefinition = new TableDefinition(PGTableName, columns);
+    const relationDefinition = new RelationDefinition(
+      PGTableName,
+      'table',
+      columns,
+    );
 
-    expect(tableDefinition.toString()).toBe(
+    expect(relationDefinition.toString()).toBe(
       `export namespace Users {
   export const PGTableName = 'users';
 
@@ -50,7 +57,7 @@ describe('TableDefinition', () => {
     );
   });
 
-  it('applies TSDoc comments to the table and columns.', () => {
+  it('applies TSDoc comments to the relation and columns.', () => {
     const PGTableName = 'users';
     const tableLevelComment =
       '/**\n * A table that contains information about users.\n */';
@@ -64,13 +71,14 @@ describe('TableDefinition', () => {
       ),
     ];
 
-    const tableDefinition = new TableDefinition(
+    const relationDefinition = new RelationDefinition(
       PGTableName,
+      'table',
       columns,
       tableLevelComment,
     );
 
-    expect(tableDefinition.toString()).toBe(
+    expect(relationDefinition.toString()).toBe(
       `/**
  * A table that contains information about users.
  */
@@ -90,11 +98,11 @@ export namespace Users {
     );
   });
 
-  it('creates valid typescript types from a table that has no columns.', () => {
+  it('creates valid typescript types from a relation that has no columns.', () => {
     const PGTableName = 'empty_table';
-    const tableDefinition = new TableDefinition(PGTableName, []);
+    const relationDefinition = new RelationDefinition(PGTableName, 'table', []);
 
-    expect(tableDefinition.toString()).toBe(
+    expect(relationDefinition.toString()).toBe(
       `export namespace EmptyTable {
   export const PGTableName = 'empty_table';
 
