@@ -3,8 +3,10 @@ import { EnumDefinition, type EnumData } from '../enums';
 import {
   ColumnDefinition,
   ColumnTypeDefinition,
+  MaterializedViewDefinition,
   TableDefinition,
-} from '../tables';
+  ViewDefinition,
+} from '../relations';
 import {
   FunctionData,
   FunctionDefinition,
@@ -20,7 +22,7 @@ import {
   getTokens,
   ParsingError,
 } from '../shared';
-import type { SchemaData, TableDataWithColumns } from './read-schema-data';
+import type { SchemaData, RelationDataWithColumns } from './read-schema-data';
 import type { ParsedConfig } from '../config';
 
 export class SchemaDefinitionFactory {
@@ -28,9 +30,28 @@ export class SchemaDefinitionFactory {
     this.validateDBObjectNames(data.enums);
     this.validateDBObjectNames(data.tables);
     this.validateDBObjectNames(data.functions);
+    this.validateDBObjectNames(data.views);
+    this.validateDBObjectNames(data.materializedViews);
 
     const enumDefinitions = this.createSortedEnumDefinitions(data, config);
-    const tableDefinitions = this.createSortedTableDefinitions(data, config);
+    const tableDefinitions = this.createSortedRelationDefinitions(
+      'table',
+      data,
+      config,
+    );
+
+    const viewDefinitions = this.createSortedRelationDefinitions(
+      'view',
+      data,
+      config,
+    );
+
+    const materializedViewDefinitions = this.createSortedRelationDefinitions(
+      'materializedView',
+      data,
+      config,
+    );
+
     const functionDefinitions = this.createSortedFunctionDefinitions(
       data,
       config,
@@ -40,6 +61,8 @@ export class SchemaDefinitionFactory {
       data.name,
       enumDefinitions,
       tableDefinitions,
+      viewDefinitions,
+      materializedViewDefinitions,
       functionDefinitions,
     );
   }
@@ -112,28 +135,41 @@ export class SchemaDefinitionFactory {
     );
   }
 
-  private static createSortedTableDefinitions(
-    data: SchemaData,
-    config: ParsedConfig,
-  ) {
-    const sortedTables = this.sortDBObjectData(data.tables);
-    return this.createTableDefinitions(sortedTables, config);
+  private static createSortedRelationDefinitions<
+    T extends 'table' | 'view' | 'materializedView',
+  >(relationType: T, data: SchemaData, config: ParsedConfig) {
+    const sortedRelations = this.sortDBObjectData(
+      relationType === 'table' ? data.tables
+      : relationType === 'view' ? data.views
+      : data.materializedViews,
+    );
+
+    return this.createRelationDefinitions(
+      relationType,
+      sortedRelations,
+      config,
+    );
   }
 
-  private static createTableDefinitions(
-    tables: TableDataWithColumns[],
+  private static createRelationDefinitions<
+    T extends 'table' | 'view' | 'materializedView',
+  >(
+    relationType: T,
+    relations: RelationDataWithColumns[],
     config: ParsedConfig,
-  ) {
-    const tableDefinitions = tables.map(tableData => {
-      const shouldCopyTableComment = this.shouldCopyDBObjectComment(
-        tableData,
+  ): T extends 'table' ? TableDefinition[]
+  : T extends 'view' ? ViewDefinition[]
+  : MaterializedViewDefinition[] {
+    const relationDefinitions = relations.map(relationData => {
+      const shouldCopyRelationComment = this.shouldCopyDBObjectComment(
+        relationData,
         config,
       );
 
       let comment = '';
-      if (shouldCopyTableComment) {
+      if (shouldCopyRelationComment) {
         try {
-          comment = CommentConverter.convertComment(tableData.comment!);
+          comment = CommentConverter.convertComment(relationData.comment!);
         } catch (e) {
           if (e instanceof ParsingError) {
             console.warn(e.message);
@@ -144,7 +180,7 @@ export class SchemaDefinitionFactory {
       }
 
       /*
-        By default, comments on a column are copied if the parent table's
+        By default, comments on a column are copied if the parent relation's
         comments should be copied. This can be overridden with directives
         applied to the column-level comment directly.
       */
@@ -153,15 +189,15 @@ export class SchemaDefinitionFactory {
 
         const tokens = getTokens(comment);
         return (
-          (shouldCopyTableComment &&
+          (shouldCopyRelationComment &&
             !tokens.includes(Directives.DisableTSDocComments)) ||
-          (!shouldCopyTableComment &&
+          (!shouldCopyRelationComment &&
             tokens.includes(Directives.EnableTSDocComments))
         );
       };
 
-      const columnDefinitions = tableData.columns.map(columnData => {
-        const tsType = lookupType(columnData.type, tableData.schema, config);
+      const columnDefinitions = relationData.columns.map(columnData => {
+        const tsType = lookupType(columnData.type, relationData.schema, config);
 
         const typeDefinition = new ColumnTypeDefinition(
           tsType,
@@ -185,10 +221,22 @@ export class SchemaDefinitionFactory {
         return new ColumnDefinition(columnData.name, typeDefinition, comment);
       });
 
-      return new TableDefinition(tableData.name, columnDefinitions, comment);
+      return (
+        relationType === 'table' ?
+          new TableDefinition(relationData.name, columnDefinitions, comment)
+        : relationType === 'view' ?
+          new ViewDefinition(relationData.name, columnDefinitions, comment)
+        : new MaterializedViewDefinition(
+            relationData.name,
+            columnDefinitions,
+            comment,
+          )
+      );
     });
 
-    return tableDefinitions;
+    return relationDefinitions as T extends 'table' ? TableDefinition[]
+    : T extends 'view' ? ViewDefinition[]
+    : MaterializedViewDefinition[];
   }
 
   private static createSortedFunctionDefinitions(

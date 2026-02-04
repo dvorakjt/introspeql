@@ -2,8 +2,10 @@ import { z } from 'zod';
 import { connectionOptions } from './connection-options';
 import { functionOptions } from './function-options';
 import { generalOptions } from './general-options';
+import { materializedViewOptions } from './materialized-view-options';
 import { outputOptions } from './output-options';
 import { tableOptions } from './table-options';
+import { viewOptions } from './view-options';
 
 const introspeqlConfigSchema = generalOptions
   .and(connectionOptions)
@@ -22,6 +24,18 @@ const introspeqlConfigSchema = generalOptions
           excludeFunctions: [],
           nullableArgs: false,
           nullableReturnTypes: true,
+        };
+      }),
+      views: viewOptions.optional().default(() => {
+        return {
+          mode: 'inclusive' as const,
+          excludeViews: [],
+        };
+      }),
+      materializedViews: materializedViewOptions.optional().default(() => {
+        return {
+          mode: 'inclusive' as const,
+          excludeMaterializedViews: [],
         };
       }),
     }),

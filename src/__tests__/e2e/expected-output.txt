@@ -111,6 +111,51 @@ export namespace Reporting {
     }
   }
 
+  export namespace Views {
+    /** Read-only per-user order summary for reporting and analytics. */
+    export namespace UserOrderSummary {
+      export const PGViewName = 'user_order_summary';
+    
+      export type ColumnNames = |
+        'user_id' |
+        'email' |
+        'order_count' |
+        'first_order_at' |
+        'last_order_at';
+    
+      export interface RowType {
+        /** User identifier. */
+        ['user_id']: bigint | null;
+        /** User email address. */
+        ['email']: string | null;
+        /** Total number of orders placed by the user. */
+        ['order_count']: bigint | null;
+        /** Timestamp of the user's first order. */
+        ['first_order_at']: Date | null;
+        /** Timestamp of the user's most recent order. */
+        ['last_order_at']: Date | null;
+      }
+    }
+  }
+
+  export namespace MaterializedViews {
+    /** Aggregated order counts by status. */
+    export namespace OrderStatusCounts {
+      export const PGMaterializedViewName = 'order_status_counts';
+    
+      export type ColumnNames = |
+        'status' |
+        'total_orders';
+    
+      export interface RowType {
+        /** Order status value. */
+        ['status']: Common.Enums.OrderStatus | null;
+        /** Number of orders in this status. */
+        ['total_orders']: bigint | null;
+      }
+    }
+  }
+
   export namespace Functions {
     export namespace CountOrdersForUser {
       export const PGFunctionName = 'count_orders_for_user';

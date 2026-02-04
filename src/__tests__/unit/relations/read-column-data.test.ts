@@ -2,7 +2,7 @@ import { describe, beforeEach, afterEach, test, expect } from 'vitest';
 import { PostgresMock } from 'pgmock';
 import { Client } from 'pg';
 import { faker } from '@faker-js/faker';
-import { readColumnData } from '../../../tables';
+import { readColumnData } from '../../../relations';
 
 describe(
   'readColumnData',

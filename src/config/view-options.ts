@@ -1,3 +1,3 @@
 import { createRelationOptions } from './create-relation-options';
 
-export const tableOptions = createRelationOptions('table');
+export const viewOptions = createRelationOptions('view');

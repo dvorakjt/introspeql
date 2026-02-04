@@ -1,3 +1,5 @@
+import { capitalize } from './capitalize';
+
 /**
  * Converts a PostgreSQL identifier to a valid TypeScript identifier.
  *
@@ -49,8 +51,4 @@ export function convertPGIdentifierToTSIdentifier(identifier: string) {
   let result = prefix + words.map(word => capitalize(word)).join('');
   if (/^\d/.test(result)) result = '_' + result;
   return result;
-}
-
-function capitalize(str: string) {
-  return str[0].toUpperCase() + str.slice(1);
 }

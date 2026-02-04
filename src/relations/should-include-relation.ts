@@ -1,7 +1,7 @@
 import { EntityData } from '../config/entity-data';
 import { Directives, getTokens } from '../shared';
 
-interface ShouldIncludeTableParams {
+interface ShouldIncludeRelationParams {
   name: string;
   schema: string;
   comment: string | null;
@@ -9,13 +9,13 @@ interface ShouldIncludeTableParams {
   exceptions: EntityData[];
 }
 
-export function shouldIncludeTable({
+export function shouldIncludeRelation({
   name,
   schema,
   comment,
   mode,
   exceptions,
-}: ShouldIncludeTableParams) {
+}: ShouldIncludeRelationParams) {
   const tokens = getTokens(comment);
 
   if (mode === 'inclusive') {

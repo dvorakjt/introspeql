@@ -1,12 +1,18 @@
-import { tableDataSchema, type TableData } from './table-data';
-import { shouldIncludeTable } from './should-include-table';
+import { relationDataSchema, type RelationData } from './relation-data';
+import { shouldIncludeRelation } from './should-include-relation';
 import type { Client } from 'pg';
 import type { ParsedConfig } from '../config';
 
-export async function readTableData(
+export async function readRelationData(
+  relationType: 'table' | 'view' | 'materializedView',
   client: Client,
   config: ParsedConfig,
-): Promise<TableData[]> {
+): Promise<RelationData[]> {
+  const relkind =
+    relationType === 'table' ? 'r'
+    : relationType === 'view' ? 'v'
+    : 'm';
+
   const schemaPlaceholders = config.schemas
     .map((_, i) => `$${i + 1}`)
     .join(', ');
@@ -19,17 +25,17 @@ SELECT
   obj_description(c.oid, 'pg_class') AS comment
 FROM pg_catalog.pg_class AS c
 INNER JOIN pg_catalog.pg_namespace AS n ON c.relnamespace = n.oid
-WHERE c.relkind = 'r' AND n.nspname IN (${schemaPlaceholders});
+WHERE c.relkind = '${relkind}' AND n.nspname IN (${schemaPlaceholders});
 `;
 
   const parameters = [...config.schemas];
 
   const result = await client.query(query, parameters);
-  const tableData = tableDataSchema
+  const relationData = relationDataSchema
     .array()
     .parse(result.rows)
     .filter(({ name, schema, comment }) =>
-      shouldIncludeTable({
+      shouldIncludeRelation({
         name,
         schema,
         comment,
@@ -41,5 +47,5 @@ WHERE c.relkind = 'r' AND n.nspname IN (${schemaPlaceholders});
       }),
     );
 
-  return tableData;
+  return relationData;
 }

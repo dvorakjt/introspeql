@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { TableDefinition, ColumnDefinition } from '../../../tables';
-import { ColumnTypeDefinition } from '../../../tables';
+import {
+  TableDefinition,
+  ColumnDefinition,
+  ColumnTypeDefinition,
+} from '../../../relations';
 
 describe('TableDefinition', () => {
   it('creates a table definition.', () => {

@@ -1,10 +1,10 @@
 import { describe, test, expect } from 'vitest';
-import { shouldIncludeTable } from '../../../tables';
+import { shouldIncludeRelation } from '../../../relations';
 import { Directives } from '../../../shared';
 
-describe('shouldIncludeTable', () => {
+describe('shouldIncludeRelation', () => {
   test('if mode is inclusive, it returns true.', () => {
-    const includeEntity = shouldIncludeTable({
+    const includeEntity = shouldIncludeRelation({
       name: '',
       schema: '',
       comment: null,
@@ -16,7 +16,7 @@ describe('shouldIncludeTable', () => {
   });
 
   test('if mode is exclusive, it returns false.', () => {
-    const includeEntity = shouldIncludeTable({
+    const includeEntity = shouldIncludeRelation({
       name: '',
       schema: '',
       comment: null,
@@ -28,7 +28,7 @@ describe('shouldIncludeTable', () => {
   });
 
   test('if mode is inclusive, but the comment includes the exclude directive, it returns false.', () => {
-    const includeEntity = shouldIncludeTable({
+    const includeEntity = shouldIncludeRelation({
       name: '',
       schema: '',
       comment: `${Directives.Exclude}`,
@@ -41,17 +41,17 @@ describe('shouldIncludeTable', () => {
 
   test('if mode is inclusive, but exceptions contains the schema and name of the entity, it returns false.', () => {
     const schemaName = 'public';
-    const tableName = 'users';
+    const relName = 'users';
 
-    const includeEntity = shouldIncludeTable({
-      name: tableName,
+    const includeEntity = shouldIncludeRelation({
+      name: relName,
       schema: schemaName,
       comment: null,
       mode: 'inclusive',
       exceptions: [
         {
           schema: schemaName,
-          name: tableName,
+          name: relName,
         },
       ],
     });
@@ -60,7 +60,7 @@ describe('shouldIncludeTable', () => {
   });
 
   test('if mode is exclusive, but the comment includes the include directive, it returns true.', () => {
-    const includeEntity = shouldIncludeTable({
+    const includeEntity = shouldIncludeRelation({
       name: '',
       schema: '',
       comment: `${Directives.Include}`,
@@ -73,17 +73,17 @@ describe('shouldIncludeTable', () => {
 
   test('if mode is exclusive, but exceptions contains the schema and name of the entity, it returns true.', () => {
     const schemaName = 'public';
-    const tableName = 'users';
+    const relName = 'users';
 
-    const includeEntity = shouldIncludeTable({
-      name: tableName,
+    const includeEntity = shouldIncludeRelation({
+      name: relName,
       schema: schemaName,
       comment: null,
       mode: 'exclusive',
       exceptions: [
         {
           schema: schemaName,
-          name: tableName,
+          name: relName,
         },
       ],
     });
