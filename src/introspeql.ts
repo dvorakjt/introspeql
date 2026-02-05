@@ -47,10 +47,10 @@ export async function introspeql(config: IntrospeQLConfig) {
       parsedConfig,
     );
 
-    if (config.writeToDisk) {
+    if (parsedConfig.writeToDisk) {
       await writeTypeDefinitionsFile(
         typeDefinitionFileContents,
-        config.outFile,
+        parsedConfig.outFile,
       );
     }
 
@@ -64,14 +64,14 @@ export async function introspeql(config: IntrospeQLConfig) {
 
 function createTypeDefinitionFileContents(
   schemaDefinitions: SchemaDefinition[],
-  config: ParsedConfig,
+  parsedConfig: ParsedConfig,
 ) {
   let fileContents = schemaDefinitions
     .map(schemaDef => schemaDef.toString())
     .join('\n\n');
 
-  if (config.header) {
-    let header = config.header;
+  if (parsedConfig.header) {
+    let header = parsedConfig.header;
     while (!header.endsWith('\n\n')) {
       header += '\n';
     }
@@ -84,7 +84,7 @@ function createTypeDefinitionFileContents(
 async function writeTypeDefinitionsFile(fileContents: string, outFile: string) {
   const directoryPath = path.dirname(outFile);
   if (!existsSync(directoryPath)) {
-    await mkdir(directoryPath);
+    await mkdir(directoryPath, { recursive: true });
   }
 
   await writeFile(outFile, fileContents, 'utf-8');
