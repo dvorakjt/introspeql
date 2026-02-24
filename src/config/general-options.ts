@@ -1,7 +1,29 @@
 import { z } from 'zod';
 import { DEFAULT_TYPE_MAPPINGS } from './default-type-mappings';
+import {
+  AbstractTypeDefinitionGenerator,
+  DefaultTypeDefinitionGenerator,
+} from '../output';
+import { Constructor } from 'zod/v4/core/util.cjs';
 
 export const generalOptions = z.object({
+  typeDefinitionGenerator: z
+    .instanceof(AbstractTypeDefinitionGenerator)
+    .or(
+      z.custom<Constructor<AbstractTypeDefinitionGenerator>>(data => {
+        while (
+          typeof data === 'function' &&
+          Object.hasOwn(data, 'constructor')
+        ) {
+          if (data === AbstractTypeDefinitionGenerator) return true;
+          data = Object.getPrototypeOf(data);
+        }
+
+        return false;
+      }),
+    )
+    .optional()
+    .default(() => new DefaultTypeDefinitionGenerator()),
   /**
    * The database schemas from which types should be generated. At least one
    * schema must be specified. The default value is `['public']`.

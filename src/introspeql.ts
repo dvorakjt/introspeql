@@ -66,9 +66,12 @@ function createTypeDefinitionFileContents(
   schemaDefinitions: SchemaDefinition[],
   parsedConfig: ParsedConfig,
 ) {
-  let fileContents = schemaDefinitions
-    .map(schemaDef => schemaDef.toString())
-    .join('\n\n');
+  let fileContents = (
+    typeof parsedConfig.typeDefinitionGenerator === 'function' ?
+      new parsedConfig.typeDefinitionGenerator()
+    : parsedConfig.typeDefinitionGenerator).generateTypeDefinitions(
+    schemaDefinitions,
+  );
 
   if (parsedConfig.header) {
     let header = parsedConfig.header;
