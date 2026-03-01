@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Client } from 'pg';
+import type { SchemaData } from './schema-data';
 import { enumDataSchema, readEnumData, type EnumData } from '../enums';
 import {
   functionDataSchema,
@@ -11,23 +12,9 @@ import {
   readColumnData,
   readRelationData,
   relationDataSchema,
-  type ColumnData,
-  type RelationData,
+  type RelationDataWithColumns,
 } from '../relations';
 import type { ParsedConfig } from '../../config';
-
-export interface RelationDataWithColumns extends RelationData {
-  columns: ColumnData[];
-}
-
-export interface SchemaData {
-  name: string;
-  enums: EnumData[];
-  functions: FunctionData[];
-  tables: RelationDataWithColumns[];
-  views: RelationDataWithColumns[];
-  materializedViews: RelationDataWithColumns[];
-}
 
 export async function readSchemaData(
   client: Client,

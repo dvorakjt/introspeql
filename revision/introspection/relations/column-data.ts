@@ -9,7 +9,7 @@ export const columnDataSchema = z.object({
     isEnum: z.boolean(),
     numDimensions: z.number(),
     isNullable: z.boolean(),
-    generated: z.enum(['never', 'optionally', 'always']),
+    generated: z.enum(['never', 'by_default', 'always']),
   }),
   comment: z.string().nullable(),
 });

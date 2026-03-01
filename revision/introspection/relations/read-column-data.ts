@@ -1,7 +1,9 @@
 import { columnDataSchema, type ColumnData } from './column-data';
 import type { Client } from 'pg';
 
-// need to update this so that it reads whether or not the column is generated
+// need to update this so that it reads whether or not the column is
+// information_schema.columns.column_default can determine whether there is
+// some default value, this would result in 'generated: bydefault'
 export async function readColumnData(
   client: Client,
   tableOID: number,
@@ -41,7 +43,20 @@ SELECT jsonb_build_object(
 	  'numDimensions',
 	  a.attndims,
 	  'isNullable',
-	  NOT a.attnotnull
+	  NOT a.attnotnull,
+    'generated',
+    (
+      SELECT CASE
+        WHEN i.identity_generation = 'ALWAYS' THEN 'always'
+        WHEN i.identity_generation = 'BY DEFAULT' OR i.column_default IS NOT NULL THEN 'by_default'
+        ELSE 'never'
+      END
+      FROM information_schema.columns i
+      WHERE 
+        i.table_schema = n.nspname AND 
+        i.table_name = c.relname AND 
+        i.column_name = a.attname
+    )
   ),
   'comment',
   col_description(a.attrelid, a.attnum)
