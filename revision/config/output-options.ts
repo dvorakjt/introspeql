@@ -17,7 +17,7 @@ export const outputOptions = z.intersection(
      */
     createTypeDefinitions: createTypeDefinitionsSchema
       .optional()
-      .default(createDefaultTypeDefinitions),
+      .default(() => createDefaultTypeDefinitions),
   }),
   z.union([
     z.object({
