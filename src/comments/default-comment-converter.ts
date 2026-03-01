@@ -1,15 +1,17 @@
+import { AbstractCommentConverter } from './abstract-comment-converter';
 import { Directives, ParsingError } from '../shared';
 import { prettifyComment } from './prettify-comment';
 
-export class CommentConverter {
-  private static chunkExtractionDirectivesPattern = new RegExp(
+export class CommentConverter extends AbstractCommentConverter {
+  private chunkExtractionDirectivesPattern = new RegExp(
     `(^|\\s)(${Directives.BeginTSDocComment}|${Directives.EndTSDocComment})($|\\s)`,
     'i',
   );
 
-  private static chunkSanitizationDirectivesPattern: RegExp;
+  private chunkSanitizationDirectivesPattern: RegExp;
 
-  static {
+  constructor() {
+    super();
     const directivesPattern = `(${Object.values(Directives).join('|')})`;
     this.chunkSanitizationDirectivesPattern = new RegExp(
       `(^|\\s)(${directivesPattern})(\\s+${directivesPattern})*($|\\s)`,
@@ -21,7 +23,7 @@ export class CommentConverter {
    * Converts a PostgreSQL comment into TSDoc format, removing IntrospeQL
    * directives, and formatting, prettifying, and validating the result.
    */
-  static convertComment(pgComment: string) {
+  convertComment(pgComment: string) {
     // Break the comment into chunks and sanitize them.
     const chunks = this.extractChunks(pgComment);
     const sanitizedChunks = this.sanitizeChunks(chunks);
@@ -42,7 +44,7 @@ export class CommentConverter {
    * `@introspeql-end-tsdoc-comment` directives, or the whole comment if no
    * such directives are present.
    */
-  private static extractChunks(pgComment: string): string[] {
+  private extractChunks(pgComment: string): string[] {
     const chunks: string[] = [];
 
     let previousDirective:
@@ -86,11 +88,11 @@ export class CommentConverter {
     return chunks;
   }
 
-  private static findNextChunkExtractionDirective(pgComment: string) {
+  private findNextChunkExtractionDirective(pgComment: string) {
     return pgComment.search(this.chunkExtractionDirectivesPattern);
   }
 
-  private static extractChunk(pgComment: string, indexOfDirective: number) {
+  private extractChunk(pgComment: string, indexOfDirective: number) {
     return pgComment.slice(
       0,
       indexOfDirective >= 0 ? indexOfDirective : pgComment.length,
@@ -101,7 +103,7 @@ export class CommentConverter {
    * Extracts a directive from a comment at the provided index, regardless of
    * the case of the directive as it appears in the comment.
    */
-  private static extractDirective(
+  private extractDirective(
     pgComment: string,
     indexOfDirective: number,
   ): Directives.BeginTSDocComment | Directives.EndTSDocComment {
@@ -131,11 +133,11 @@ export class CommentConverter {
     throw new ParsingError('No directive at the provided index.');
   }
 
-  private static isEmptyChunk(chunk: string) {
+  private isEmptyChunk(chunk: string) {
     return !chunk.trim();
   }
 
-  private static discardPreviousChunk(pgComment: string) {
+  private discardPreviousChunk(pgComment: string) {
     const {
       index,
       [0]: { length },
@@ -147,7 +149,7 @@ export class CommentConverter {
    * Removes directives and leading/trailing new lines from each chunk. Filters
    * out lines/chunks whose only content was directives.
    */
-  private static sanitizeChunks(chunks: string[]): string[] {
+  private sanitizeChunks(chunks: string[]): string[] {
     let sanitizedChunks = this.removeLeadingAndTrailingNewLines(chunks);
     sanitizedChunks = this.removeDirectives(sanitizedChunks);
     return sanitizedChunks;
@@ -157,7 +159,7 @@ export class CommentConverter {
    * All chunks are separated with empty lines by default, so leading and
    * trailing new lines are removed from each chunk.
    */
-  private static removeLeadingAndTrailingNewLines(chunks: string[]): string[] {
+  private removeLeadingAndTrailingNewLines(chunks: string[]): string[] {
     return chunks.map(chunk => {
       while (chunk.startsWith('\n')) {
         chunk = chunk.slice(1);
@@ -175,7 +177,7 @@ export class CommentConverter {
    * Removes all IntrospeQL directives from the provided chunks and filters
    * out lines/chunks whose only contents were such directives.
    */
-  private static removeDirectives(chunks: string[]): string[] {
+  private removeDirectives(chunks: string[]): string[] {
     const result: string[] = [];
 
     chunks.forEach(chunk => {
@@ -213,7 +215,7 @@ export class CommentConverter {
   /**
    * Merges chunks and applies basic TSDoc formatting.
    */
-  private static formatAndMergeChunks(chunks: string[]): string {
+  private formatAndMergeChunks(chunks: string[]): string {
     const mergedChunks = chunks
       .map(chunk => {
         const lines = chunk.split('\n');
@@ -227,7 +229,7 @@ export class CommentConverter {
   /**
    * Prettifies a comment that has already received basic TSDoc formatting.
    */
-  private static prettifyComment(comment: string): string {
+  private prettifyComment(comment: string): string {
     const prettified = prettifyComment(comment);
     return prettified;
   }
@@ -237,7 +239,7 @@ export class CommentConverter {
    * validation must occur after the TSDoc comment is produced to guarantee that
    * the collapse of whitespace and/or removal of directives hasn't produced *\/.
    */
-  private static validateComment(comment: string) {
+  private validateComment(comment: string) {
     if (comment !== '' && comment.indexOf('*/') !== comment.length - 2) {
       throw new ParsingError('Comments cannot contain */');
     }
