@@ -5,11 +5,10 @@ import type { RelationDefinition } from './relation-definition';
 export class SchemaDefinition {
   constructor(
     public pgName: string,
-    public tsDocComment: string | undefined,
-    public enumDefinitions: EnumDefinition[],
-    public functionDefinitions: FunctionDefinition[],
     public tableDefinitions: RelationDefinition[],
     public viewDefinitions: RelationDefinition[],
     public materializedViewDefinitions: RelationDefinition[],
+    public functionDefinitions: FunctionDefinition[],
+    public enumDefinitions: EnumDefinition[],
   ) {}
 }

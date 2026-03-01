@@ -1,9 +1,6 @@
 import { columnDataSchema, type ColumnData } from './column-data';
 import type { Client } from 'pg';
 
-// need to update this so that it reads whether or not the column is
-// information_schema.columns.column_default can determine whether there is
-// some default value, this would result in 'generated: bydefault'
 export async function readColumnData(
   client: Client,
   tableOID: number,

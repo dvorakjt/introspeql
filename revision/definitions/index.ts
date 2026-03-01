@@ -1,6 +1,7 @@
 export * from './column-definition';
 export * from './column-type-definition';
 export * from './enum-definition';
+export * from './enum-stub';
 export * from './function-definition';
 export * from './function-overload-definition';
 export * from './function-parameter-definition';
