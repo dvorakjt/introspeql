@@ -1,7 +1,7 @@
 import { relationDataSchema, type RelationData } from './relation-data';
 import { shouldIncludeRelation } from './should-include-relation';
 import type { Client } from 'pg';
-import type { ParsedConfig } from '../config';
+import type { ParsedConfig } from '../../config';
 
 export async function readRelationData(
   relationType: 'table' | 'view' | 'materializedView',

@@ -58,7 +58,7 @@ export class SchemaDefinitionFactory {
       const isCopyingRelationCommentPermitted =
         this.isCopyingDBObjectCommentPermitted(relationData.comment, config);
 
-      let tsDocComment = '';
+      let tsDocComment: string | undefined = undefined;
 
       if (relationData.comment && isCopyingRelationCommentPermitted) {
         const { success, result, message } = CommentConverter.convertComment(
@@ -90,41 +90,42 @@ export class SchemaDefinitionFactory {
         );
       };
 
-      const columnDefinitions = relationData.columns.map(columnData => {
-        const tsType = this.lookupType(columnData.type, config);
+      const columnDefinitions = sortByPGName(
+        relationData.columns.map(columnData => {
+          const tsType = this.lookupType(columnData.type, config);
 
-        const typeDefinition = new ColumnTypeDefinition(
-          tsType,
-          columnData.type.numDimensions,
-          columnData.type.isNullable,
-          columnData.type.generated,
-        );
-
-        let tsDocComment: string | undefined = undefined;
-
-        if (
-          columnData.comment &&
-          isCopyingColumnCommentPermitted(columnData.comment)
-        ) {
-          const { success, result, message } = CommentConverter.convertComment(
-            columnData.comment,
+          const typeDefinition = new ColumnTypeDefinition(
+            tsType,
+            columnData.type.numDimensions,
+            columnData.type.isNullable,
+            columnData.type.generated,
           );
 
-          if (!success) {
-            if (message) {
-              console.warn(message);
-            }
-          } else if (result) {
-            tsDocComment = result;
-          }
-        }
+          let tsDocComment: string | undefined = undefined;
 
-        return new ColumnDefinition(
-          columnData.name,
-          tsDocComment,
-          typeDefinition,
-        );
-      });
+          if (
+            columnData.comment &&
+            isCopyingColumnCommentPermitted(columnData.comment)
+          ) {
+            const { success, result, message } =
+              CommentConverter.convertComment(columnData.comment);
+
+            if (!success) {
+              if (message) {
+                console.warn(message);
+              }
+            } else if (result) {
+              tsDocComment = result;
+            }
+          }
+
+          return new ColumnDefinition(
+            columnData.name,
+            tsDocComment,
+            typeDefinition,
+          );
+        }),
+      );
 
       return new RelationDefinition(
         relationData.name,

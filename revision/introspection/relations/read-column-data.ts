@@ -42,17 +42,20 @@ SELECT jsonb_build_object(
 	  'isNullable',
 	  NOT a.attnotnull,
     'generated',
-    (
-      SELECT CASE
-        WHEN i.identity_generation = 'ALWAYS' THEN 'always'
-        WHEN i.identity_generation = 'BY DEFAULT' OR i.column_default IS NOT NULL THEN 'by_default'
-        ELSE 'never'
-      END
-      FROM information_schema.columns i
-      WHERE 
-        i.table_schema = n.nspname AND 
-        i.table_name = c.relname AND 
-        i.column_name = a.attname
+    COALESCE(
+      (
+        SELECT CASE
+          WHEN i.identity_generation = 'ALWAYS' THEN 'always'
+          WHEN i.identity_generation = 'BY DEFAULT' OR i.column_default IS NOT NULL THEN 'by_default'
+          ELSE 'never'
+        END
+        FROM information_schema.columns i
+        WHERE 
+          i.table_schema = n.nspname AND 
+          i.table_name = c.relname AND 
+          i.column_name = a.attname
+      ),
+      'never'
     )
   ),
   'comment',

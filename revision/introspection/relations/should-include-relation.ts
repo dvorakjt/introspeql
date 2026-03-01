@@ -1,5 +1,5 @@
-import { EntityData } from '../config/entity-data';
-import { Directives, getTokens } from '../shared';
+import { EntityData } from '../../config/entity-data';
+import { Directives, getTokens } from '../../comments';
 
 interface ShouldIncludeRelationParams {
   name: string;

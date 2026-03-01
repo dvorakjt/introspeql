@@ -1,5 +1,5 @@
-import { Directives, getTokens } from '../shared';
-import type { ParsedConfig } from '../config';
+import { Directives, getTokens } from '../../comments';
+import type { ParsedConfig } from '../../config';
 
 export function shouldIncludeOverload(
   schema: string,
