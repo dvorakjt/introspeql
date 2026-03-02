@@ -1,3 +1,14 @@
 export { introspeql } from './introspeql';
-export { Directives } from './shared';
-export type { IntrospeQLConfig } from './config';
+export { Directives } from './comments';
+export type {
+  ColumnDefinition,
+  ColumnTypeDefinition,
+  EnumDefinition,
+  EnumStub,
+  FunctionDefinition,
+  FunctionOverloadDefinition,
+  FunctionParameterDefinition,
+  FunctionReturnTypeDefinition,
+  RelationDefinition,
+  SchemaDefinition,
+} from './definitions';

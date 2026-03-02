@@ -9,26 +9,26 @@ export namespace Auth {
       export const PGTableName = 'users';
     
       export type ColumnNames = |
-        'user_id' |
+        'created_at' |
         'email' |
-        'status' |
-        'roles' |
         'login_history' |
-        'created_at';
+        'roles' |
+        'status' |
+        'user_id';
     
       export interface RowType {
-        /** Unique identifier for the user. */
-        ['user_id']: bigint;
-        /** Email address used for authentication and communication. */
-        ['email']: string;
-        /** Current account status. */
-        ['status']: Common.Enums.UserStatus;
-        /** Assigned authorization roles. */
-        ['roles']: string[];
-        /** Grouped login timestamps per session. */
-        ['login_history']: Date[][] | null;
         /** Account creation timestamp. */
         ['created_at']: Date;
+        /** Email address used for authentication and communication. */
+        ['email']: string;
+        /** Grouped login timestamps per session. */
+        ['login_history']: Date[][] | null;
+        /** Assigned authorization roles. */
+        ['roles']: string[];
+        /** Current account status. */
+        ['status']: Common.Enums.UserStatus;
+        /** Unique identifier for the user. */
+        ['user_id']: bigint;
       }
     }
   }
@@ -117,23 +117,23 @@ export namespace Reporting {
       export const PGViewName = 'user_order_summary';
     
       export type ColumnNames = |
-        'user_id' |
         'email' |
-        'order_count' |
         'first_order_at' |
-        'last_order_at';
+        'last_order_at' |
+        'order_count' |
+        'user_id';
     
       export interface RowType {
-        /** User identifier. */
-        ['user_id']: bigint | null;
         /** User email address. */
         ['email']: string | null;
-        /** Total number of orders placed by the user. */
-        ['order_count']: bigint | null;
         /** Timestamp of the user's first order. */
         ['first_order_at']: Date | null;
         /** Timestamp of the user's most recent order. */
         ['last_order_at']: Date | null;
+        /** Total number of orders placed by the user. */
+        ['order_count']: bigint | null;
+        /** User identifier. */
+        ['user_id']: bigint | null;
       }
     }
   }
@@ -196,18 +196,18 @@ export namespace Sales {
       export type ColumnNames = |
         'item_id' |
         'order_id' |
-        'sku' |
-        'quantities';
+        'quantities' |
+        'sku';
     
       export interface RowType {
         /** Primary key of the archived item. */
         ['item_id']: bigint;
         /** Associated order identifier. */
         ['order_id']: bigint;
-        /** Stock keeping unit code. */
-        ['sku']: string;
         /** Captured quantities at archive time. */
         ['quantities']: number[];
+        /** Stock keeping unit code. */
+        ['sku']: string;
       }
     }
     
@@ -216,26 +216,26 @@ export namespace Sales {
       export const PGTableName = 'orders';
     
       export type ColumnNames = |
+        'created_at' |
         'order_id' |
-        'user_id' |
         'status' |
         'tags' |
         'totals' |
-        'created_at';
+        'user_id';
     
       export interface RowType {
+        /** Timestamp when the order was created. */
+        ['created_at']: Date;
         /** Primary identifier for the order. */
         ['order_id']: bigint;
-        /** User that placed the order. */
-        ['user_id']: bigint;
         /** Current processing status. */
         ['status']: Common.Enums.OrderStatus;
         /** Optional classification tags. */
         ['tags']: string[] | null;
         /** Multi-dimensional numeric totals. */
         ['totals']: string[][] | null;
-        /** Timestamp when the order was created. */
-        ['created_at']: Date;
+        /** User that placed the order. */
+        ['user_id']: bigint;
       }
     }
   }

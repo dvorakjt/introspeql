@@ -1,3 +1,3 @@
-export * from './abstract-comment-converter';
-export * from './default-comment-converter';
-export * from './prettify-comment';
+export * from './comment-converter';
+export * from './directives';
+export * from './get-tokens';

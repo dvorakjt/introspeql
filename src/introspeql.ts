@@ -1,18 +1,11 @@
 import { writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import * as path from 'path';
-import {
-  introspeqlConfigSchema,
-  type IntrospeQLConfig,
-  type ParsedConfig,
-} from './config';
-import {
-  readSchemaData,
-  SchemaDefinitionFactory,
-  type SchemaDefinition,
-} from './schemas';
 import { Client } from 'pg';
-import { convertPGIdentifierToTSIdentifier } from './shared';
+import { introspeqlConfigSchema, type IntrospeQLConfig } from './config';
+import { readSchemaData } from './introspection';
+import { SchemaDefinitionFactory } from './definitions';
+import { sortByPGName } from './shared';
 
 /**
  * Reads information about schemas, tables, columns, functions, and enums from
@@ -28,33 +21,28 @@ export async function introspeql(config: IntrospeQLConfig) {
   try {
     await client.connect();
 
-    const schemas = await readSchemaData(client, parsedConfig);
-    const schemaDefinitions = Object.values(schemas)
-      .sort((a, b) => {
-        return convertPGIdentifierToTSIdentifier(a.name).localeCompare(
-          convertPGIdentifierToTSIdentifier(b.name),
-        );
-      })
-      .map(schemaData => {
+    const schemaData = await readSchemaData(client, parsedConfig);
+    const schemaDefinitions = sortByPGName(
+      Object.values(schemaData).map(schemaData => {
         return SchemaDefinitionFactory.createSchemaDefinition(
           schemaData,
           parsedConfig,
         );
-      });
-
-    const typeDefinitionFileContents = createTypeDefinitionFileContents(
-      schemaDefinitions,
-      parsedConfig,
+      }),
     );
 
+    const typeDefinitions =
+      parsedConfig.createTypeDefinitions(schemaDefinitions);
+    const typeDefFileContents =
+      parsedConfig.header ?
+        prependHeader(typeDefinitions, parsedConfig.header)
+      : typeDefinitions;
+
     if (parsedConfig.writeToDisk) {
-      await writeTypeDefinitionsFile(
-        typeDefinitionFileContents,
-        parsedConfig.outFile,
-      );
+      await writeTypeDefinitionsFile(typeDefFileContents, parsedConfig.outFile);
     }
 
-    return typeDefinitionFileContents;
+    return typeDefFileContents;
   } catch (e) {
     console.error(e);
   } finally {
@@ -62,26 +50,12 @@ export async function introspeql(config: IntrospeQLConfig) {
   }
 }
 
-function createTypeDefinitionFileContents(
-  schemaDefinitions: SchemaDefinition[],
-  parsedConfig: ParsedConfig,
-) {
-  let fileContents = (
-    typeof parsedConfig.typeDefinitionGenerator === 'function' ?
-      new parsedConfig.typeDefinitionGenerator()
-    : parsedConfig.typeDefinitionGenerator).generateTypeDefinitions(
-    schemaDefinitions,
-  );
-
-  if (parsedConfig.header) {
-    let header = parsedConfig.header;
-    while (!header.endsWith('\n\n')) {
-      header += '\n';
-    }
-    fileContents = header + fileContents;
+function prependHeader(typeDefinitions: string, header: string) {
+  while (!header.endsWith('\n\n')) {
+    header += '\n';
   }
 
-  return fileContents;
+  return header + typeDefinitions;
 }
 
 async function writeTypeDefinitionsFile(fileContents: string, outFile: string) {
