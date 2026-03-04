@@ -22,6 +22,7 @@ export async function introspeql(config: IntrospeQLConfig) {
     await client.connect();
 
     const schemaData = await readSchemaData(client, parsedConfig);
+
     const schemaDefinitions = sortByPGName(
       Object.values(schemaData).map(schemaData => {
         return SchemaDefinitionFactory.createSchemaDefinition(

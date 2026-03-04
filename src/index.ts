@@ -1,5 +1,6 @@
 export { introspeql } from './introspeql';
 export { Directives } from './comments';
+export type { IntrospeQLConfig } from './config';
 export type {
   ColumnDefinition,
   ColumnTypeDefinition,
@@ -12,3 +13,4 @@ export type {
   RelationDefinition,
   SchemaDefinition,
 } from './definitions';
+export { LegacyTypeGenerator } from './output';

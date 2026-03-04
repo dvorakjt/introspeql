@@ -106,7 +106,19 @@ A type definition file will have been generated at `generated/type-definitions.t
 
 ## Output
 
-The type definitions file consists of nested
+Output can be controlled by passing a function to the `createTypeDefinitions` 
+configuration option. This function accepts an array of `SchemaData` objects and 
+should return a string. If a header was provided, it will be automatically 
+prepended to the value returned by this function. This allows you to customize 
+the resultant type definitions to meet the requirements of various ORMs, 
+query builders, etc.
+
+If this function is omitted, the `LegacyTypeGenerator` class will produce type 
+definitions as described below.
+
+## Default Output
+
+The default type definitions file consists of nested
 [namespaces](https://www.typescriptlang.org/docs/handbook/namespaces.html).
 Each top-level namespace represents a schema and contains the name of the schema
 as well as type definitions for its tables, views, materialized views,
@@ -137,18 +149,19 @@ The following options exist directly on the top-level configuration object.
 
 | Option               | Type                      | Required    | Default      | Description                                                                                                                                                        |
 | -------------------- | ------------------------- | ----------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `schemas`            | `string[]`                | No          | `['public']` | PostgreSQL schemas to introspect. At least one schema must be specified.                                                                                           |
-| `header`             | `string`                  | No          | —            | Text inserted at the top of the generated output file (e.g., additional type imports or definitions).                                                              |
-| `types`              | `Record<string, string>`  | No          | —            | Custom PostgreSQL-to-TypeScript type mappings that override built-in defaults. These should be specified in the format `<schema>.<type>`, e.g. `'pg_catalog.int8'` |
-| `copyComments`       | `boolean`                 | No          | `true`       | Whether database comments are copied into generated TypeScript documentation comments.                                                                             |
-| `dbConnectionString` | `string`                  | Conditional | —            | PostgreSQL connection string. Exactly one of this or `dbConnectionParams` must be provided.                                                                        |
-| `dbConnectionParams` | `object`                  | Conditional | —            | PostgreSQL connection parameters. Exactly one of this or `dbConnectionString` must be provided.                                                                    |
-| `writeToDisk`        | `boolean`                 | Yes         | —            | Controls whether generated output is written to disk.                                                                                                              |
-| `outFile`            | `string`                  | Conditional | —            | Output file path. Required when `writeToDisk` is `true`.                                                                                                           |
-| `tables`             | `TableOptions`            | No          | —            | Table filtering configuration.                                                                                                                                     |
-| `views`              | `ViewOptions`             | No          | —            | View filtering configuration.                                                                                                                                      |
-| `materializedViews`  | `MaterializedViewOptions` | No          | —            | Materialized view filtering configuration.                                                                                                                         |
-| `functions`          | `FunctionOptions`         | No          | —            | Function filtering and typing configuration.                                                                                                                       |
+| `schemas`              | `string[]`                | No          | `['public']` | PostgreSQL schemas to introspect. At least one schema must be specified.                                                                                           |
+| `header`               | `string`                  | No          | —            | Text inserted at the top of the generated output file (e.g., additional type imports or definitions).                                                              |
+| `createTypeDefinitions`| `(SchemaData[]) => string`  | No          | See above    | A function that accepts an array of `SchemaData` objects and returns a string containing TypeScript type definitions. If a header is provided, it will be automatically prepended to the result of this function.                                                                        |
+| `types`                | `Record<string, string>`  | No          | —            | Custom PostgreSQL-to-TypeScript type mappings that override built-in defaults. These should be specified in the format `<schema>.<type>`, e.g. `'pg_catalog.int8'` |
+| `copyComments`         | `boolean`                 | No          | `true`       | Whether database comments are copied into generated TypeScript documentation comments.                                                                             |
+| `dbConnectionString`   | `string`                  | Conditional | —            | PostgreSQL connection string. Exactly one of this or `dbConnectionParams` must be provided.                                                                        |
+| `dbConnectionParams`   | `object`                  | Conditional | —            | PostgreSQL connection parameters. Exactly one of this or `dbConnectionString` must be provided.                                                                    |
+| `writeToDisk`          | `boolean`                 | Yes         | —            | Controls whether generated output is written to disk.                                                                                                              |
+| `outFile`              | `string`                  | Conditional | —            | Output file path. Required when `writeToDisk` is `true`.                                                                                                           |
+| `tables`               | `TableOptions`            | No          | —            | Table filtering configuration.                                                                                                                                     |
+| `views`                | `ViewOptions`             | No          | —            | View filtering configuration.                                                                                                                                      |
+| `materializedViews`    | `MaterializedViewOptions` | No          | —            | Materialized view filtering configuration.                                                                                                                         |
+| `functions`            | `FunctionOptions`         | No          | —            | Function filtering and typing configuration.                                                                                                                       |
 
 #### `dbConnectionParams`
 
