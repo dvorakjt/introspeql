@@ -5,7 +5,8 @@ import { customAlphabet } from 'nanoid';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { introspeql } from '../../introspeql';
-import type { IntrospeQLConfig } from '../../config';
+import { introspeqlConfigSchema, type IntrospeQLConfig } from '../../config';
+import { readSchemaData } from '../../introspection';
 
 const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz', 30);
 

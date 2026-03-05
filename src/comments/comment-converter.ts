@@ -1,5 +1,6 @@
-import { Directives, ParsingError } from '../shared';
-import { prettifyComment } from './prettify-comment';
+import synchronizedPrettier from '@prettier/sync';
+import { Directives } from './directives';
+import type { ActionResult, FunctionResult } from '../shared';
 
 export class CommentConverter {
   private static chunkExtractionDirectivesPattern = new RegExp(
@@ -21,19 +22,39 @@ export class CommentConverter {
    * Converts a PostgreSQL comment into TSDoc format, removing IntrospeQL
    * directives, and formatting, prettifying, and validating the result.
    */
-  static convertComment(pgComment: string) {
+  static convertComment(pgComment: string): FunctionResult<string> {
     // Break the comment into chunks and sanitize them.
-    const chunks = this.extractChunks(pgComment);
-    const sanitizedChunks = this.sanitizeChunks(chunks);
+    const extractionResult = this.extractChunks(pgComment);
+
+    if (!extractionResult.success) {
+      return {
+        success: false,
+        message: extractionResult.message,
+        result: '',
+      };
+    }
+
+    const sanitizedChunks = this.sanitizeChunks(extractionResult.result);
 
     // Convert the comment and validate it.
     const convertedComment = this.formatAndMergeChunks(sanitizedChunks);
-    this.validateComment(convertedComment);
+    const initialValidationResult = this.validateComment(convertedComment);
+
+    if (!initialValidationResult.success)
+      return {
+        success: false,
+        message: initialValidationResult.message,
+        result: '',
+      };
 
     // Prettify the comment and validate it.
     const prettifiedComment = this.prettifyComment(convertedComment);
-    this.validateComment(prettifiedComment);
-    return prettifiedComment;
+    const finalValidationResult = this.validateComment(prettifiedComment);
+    return {
+      success: finalValidationResult.success,
+      result: finalValidationResult.success ? prettifiedComment : '',
+      message: finalValidationResult.message,
+    };
   }
 
   /**
@@ -42,7 +63,7 @@ export class CommentConverter {
    * `@introspeql-end-tsdoc-comment` directives, or the whole comment if no
    * such directives are present.
    */
-  private static extractChunks(pgComment: string): string[] {
+  private static extractChunks(pgComment: string): FunctionResult<string[]> {
     const chunks: string[] = [];
 
     let previousDirective:
@@ -57,11 +78,14 @@ export class CommentConverter {
       const directive = this.extractDirective(pgComment, indexOfDirective);
 
       if (directive === previousDirective) {
-        throw new ParsingError(
-          'Ambiguous directives: cannot have two instances of ' +
+        return {
+          success: false,
+          message:
+            'Ambiguous directives: cannot have two instances of ' +
             directive +
             'in a row in the same comment.',
-        );
+          result: [],
+        };
       } else if (
         directive === Directives.EndTSDocComment &&
         !this.isEmptyChunk(chunk)
@@ -83,7 +107,10 @@ export class CommentConverter {
       chunks.push(chunk);
     }
 
-    return chunks;
+    return {
+      success: true,
+      result: chunks,
+    };
   }
 
   private static findNextChunkExtractionDirective(pgComment: string) {
@@ -122,13 +149,9 @@ export class CommentConverter {
 
     if (searchString.startsWith(Directives.BeginTSDocComment.toLowerCase())) {
       return Directives.BeginTSDocComment;
-    } else if (
-      searchString.startsWith(Directives.EndTSDocComment.toLowerCase())
-    ) {
-      return Directives.EndTSDocComment;
     }
 
-    throw new ParsingError('No directive at the provided index.');
+    return Directives.EndTSDocComment;
   }
 
   private static isEmptyChunk(chunk: string) {
@@ -228,8 +251,15 @@ export class CommentConverter {
    * Prettifies a comment that has already received basic TSDoc formatting.
    */
   private static prettifyComment(comment: string): string {
-    const prettified = prettifyComment(comment);
-    return prettified;
+    return synchronizedPrettier
+      .format(comment, {
+        parser: 'typescript',
+        plugins: [require.resolve('prettier-plugin-jsdoc')],
+        printWidth: 80,
+        tsDoc: true,
+        jsdocPreferCodeFences: true,
+      })
+      .trim();
   }
 
   /**
@@ -237,9 +267,12 @@ export class CommentConverter {
    * validation must occur after the TSDoc comment is produced to guarantee that
    * the collapse of whitespace and/or removal of directives hasn't produced *\/.
    */
-  private static validateComment(comment: string) {
-    if (comment !== '' && comment.indexOf('*/') !== comment.length - 2) {
-      throw new ParsingError('Comments cannot contain */');
-    }
+  private static validateComment(comment: string): ActionResult {
+    const isValid =
+      comment === '' || comment.indexOf('*/') === comment.length - 2;
+    return {
+      success: isValid,
+      message: isValid ? '' : 'Comment bodies cannot contain */',
+    };
   }
 }

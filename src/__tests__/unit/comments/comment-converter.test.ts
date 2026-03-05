@@ -1,27 +1,40 @@
 import { describe, it, expect, vi } from 'vitest';
-import { CommentConverter, prettifyComment } from '../../../comments';
-import { Directives, ParsingError } from '../../../shared';
+import synchronizedPrettier from '@prettier/sync';
+import { CommentConverter, Directives } from '../../../comments';
 import { faker } from '@faker-js/faker';
 
 function applyFormatting(paragraphs: string[]) {
-  return prettifyComment(
-    '/**\n' +
-      paragraphs
-        .map(p =>
-          p
-            .split('\n')
-            .map(p => ' * ' + p)
-            .join('\n'),
-        )
-        .join('\n *\n') +
-      '\n */',
-  );
+  return synchronizedPrettier
+    .format(
+      '/**\n' +
+        paragraphs
+          .map(p =>
+            p
+              .split('\n')
+              .map(p => ' * ' + p)
+              .join('\n'),
+          )
+          .join('\n *\n') +
+        '\n */',
+      {
+        parser: 'typescript',
+        plugins: [require.resolve('prettier-plugin-jsdoc')],
+        printWidth: 80,
+        tsDoc: true,
+        jsdocPreferCodeFences: true,
+      },
+    )
+    .trim();
 }
 
 describe('CommentConverter.convertComment', () => {
   it('returns the whole comment if no directive is included.', () => {
     const comment = faker.lorem.paragraphs(3);
-    const actual = CommentConverter.convertComment(comment);
+
+    const { success, result: actual } =
+      CommentConverter.convertComment(comment);
+    expect(success).toBe(true);
+
     const expected = applyFormatting([comment]);
     expect(actual).toBe(expected);
   });
@@ -32,7 +45,10 @@ describe('CommentConverter.convertComment', () => {
     const comment =
       excluded + '\n' + Directives.BeginTSDocComment + '\n' + included;
 
-    const actual = CommentConverter.convertComment(comment);
+    const { success, result: actual } =
+      CommentConverter.convertComment(comment);
+    expect(success).toBe(true);
+
     const expected = applyFormatting([included]);
     expect(actual).toBe(expected);
   });
@@ -43,7 +59,10 @@ describe('CommentConverter.convertComment', () => {
     const comment =
       included + '\n' + Directives.EndTSDocComment + '\n' + excluded;
 
-    const actual = CommentConverter.convertComment(comment);
+    const { success, result: actual } =
+      CommentConverter.convertComment(comment);
+    expect(success).toBe(true);
+
     const expected = applyFormatting([included]);
     expect(actual).toBe(expected);
   });
@@ -69,7 +88,10 @@ describe('CommentConverter.convertComment', () => {
       included[2],
     ].join('\n');
 
-    const actual = CommentConverter.convertComment(comment);
+    const { success, result: actual } =
+      CommentConverter.convertComment(comment);
+    expect(success).toBe(true);
+
     const expected = applyFormatting(included);
     expect(actual).toBe(expected);
   });
@@ -95,33 +117,32 @@ describe('CommentConverter.convertComment', () => {
       included[2],
     ].join('\n');
 
-    const actual = CommentConverter.convertComment(comment);
+    const { success, result: actual } =
+      CommentConverter.convertComment(comment);
+    expect(success).toBe(true);
+
     const expected = applyFormatting(included);
     expect(actual).toBe(expected);
   });
 
-  it('throws a parsing error if two of the same directive appear in a row.', () => {
+  it('fails if two of the same directive appear in a row.', () => {
     const invalidComments = [
       Directives.BeginTSDocComment + ' ' + Directives.BeginTSDocComment,
       Directives.EndTSDocComment + '\n' + Directives.EndTSDocComment,
     ];
 
     for (const comment of invalidComments) {
-      expect(() => CommentConverter.convertComment(comment)).toThrow(
-        ParsingError,
-      );
+      expect(CommentConverter.convertComment(comment).success).toBe(false);
     }
   });
 
-  it('throws an error when it attempts to convert a potentially malicious comment.', () => {
+  it('fails when it attempts to convert a potentially malicious comment.', () => {
     const evilFunction = vi.fn();
     const evilComment = '*/ evilFunction() /*';
     const withoutValidation = applyFormatting([evilComment]);
     eval(withoutValidation);
     expect(evilFunction).toHaveBeenCalled();
-    expect(() => CommentConverter.convertComment(evilComment)).toThrow(
-      ParsingError,
-    );
+    expect(CommentConverter.convertComment(evilComment).success).toBe(false);
   });
 
   it('returns empty strings for empty comments and comments consisting only of directives.', () => {
@@ -141,13 +162,18 @@ describe('CommentConverter.convertComment', () => {
     ];
 
     for (const comment of comments) {
-      expect(CommentConverter.convertComment(comment)).toBe('');
+      const { success, result } = CommentConverter.convertComment(comment);
+      expect(success).toBe(true);
+      expect(result).toBe('');
     }
   });
 
   it('does not recognize directives that are not separated by spaces or new lines.', () => {
     const comment = faker.lorem.sentence() + Directives.BeginTSDocComment;
-    const actual = CommentConverter.convertComment(comment);
+    const { success, result: actual } =
+      CommentConverter.convertComment(comment);
+    expect(success).toBe(true);
+
     const expected = applyFormatting([comment]);
     expect(actual).toBe(expected);
   });
@@ -203,7 +229,10 @@ describe('CommentConverter.convertComment', () => {
 
     const comment = linesWithDirectives.join('\n');
     const commentWithoutDirectives = lines.join('\n');
-    const actual = CommentConverter.convertComment(comment);
+    const { success, result: actual } =
+      CommentConverter.convertComment(comment);
+    expect(success).toBe(true);
+
     const expected = applyFormatting([commentWithoutDirectives]);
     expect(actual).toBe(expected);
   });

@@ -1,2 +1,3 @@
 export * from './comment-converter';
-export * from './prettify-comment';
+export * from './directives';
+export * from './get-tokens';
