@@ -1,12 +1,13 @@
 {
   "name": "introspeql",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "IntrospeQL reads information about the schemas, tables, views, materialized views, functions and enums in your PostgreSQL database and produces a TypeScript file detailing type information for each object in the database.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc",
